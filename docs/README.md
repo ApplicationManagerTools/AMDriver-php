@@ -1,5 +1,7 @@
 # Specifications (reference)
 
+**Manuel d’intégration (intégrateurs humains, français)** : [MANUEL-INTEGRATION-INTEGRATEURS.md](./MANUEL-INTEGRATION-INTEGRATEURS.md).
+
 Upstream documents live in the Application Manager agents repository:
 
 - [Cahier des charges connecteur AM (applications gérées)](https://github.com/logipro-fr/application-manager/blob/main/application-manager-agents/docs/specifications/cahier-des-charges-connecteur-am-applications-gerees-v1.md)

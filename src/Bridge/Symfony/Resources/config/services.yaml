@@ -6,14 +6,23 @@ services:
     ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OrchestrationCommandController:
         arguments:
             $orchestrationCommandToken: '%am_driver.config.orchestration_command_token%'
+        tags:
+            - controller.service_arguments
+        public: true
 
     ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OperationalStateController:
         arguments:
             $operationalStateToken: '%am_driver.config.operational_state_token%'
+        tags:
+            - controller.service_arguments
+        public: true
 
     ApplicationManagerTools\AmDriver\Core\Http\AmApiClient:
         arguments:
             $config: '@ApplicationManagerTools\AmDriver\Core\Http\AmApiClientConfig'
+
+    ApplicationManagerTools\AmDriver\Core\Http\AmApiClientInterface:
+        alias: ApplicationManagerTools\AmDriver\Core\Http\AmApiClient
 
     ApplicationManagerTools\AmDriver\Core\Http\AmApiClientConfig:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\AmApiClientConfigFactory', 'create']
