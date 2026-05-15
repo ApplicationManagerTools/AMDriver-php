@@ -59,3 +59,8 @@ services:
 
     ApplicationManagerTools\AmDriver\Core\Contract\ConnectivityProbeInterface:
         alias: ApplicationManagerTools\AmDriver\Core\Http\HttpOrchestrationConnectivityProbe
+
+    ApplicationManagerTools\AmDriver\Core\Http\HttpOrchestrationConnectivityProbe: ~
+
+    ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotStoreInterface:
+        alias: ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore
