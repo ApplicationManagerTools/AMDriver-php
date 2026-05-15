@@ -30,6 +30,8 @@ final class Configuration implements ConfigurationInterface
                 ->integerNode('consumption_retry_delay_ms')->defaultValue(500)->end()
                 ->scalarNode('orchestration_commands_path')->defaultValue('/internal/am/orchestration/commands')->end()
                 ->scalarNode('operational_state_path')->defaultValue('/internal/am/instance-operational-state')->end()
+                ->scalarNode('expected_tenant_id')->defaultNull()->end()
+                ->scalarNode('expected_instance_id')->defaultNull()->end()
             ->end();
 
         return $treeBuilder;

@@ -10,6 +10,7 @@ use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStartInstanceHandl
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStopInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Http\NoopAmApiClient;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore;
+use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor;
@@ -43,6 +44,7 @@ final class ReceptacleBootstrapFactory
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),
+                new FileOperationalStateReceiptStore($dataDir.'/operational-state-receipts'),
                 new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', $config['source']))
             ),
             $config['orchestration_path'],

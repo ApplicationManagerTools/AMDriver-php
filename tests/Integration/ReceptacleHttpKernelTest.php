@@ -11,6 +11,7 @@ use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStopInstanceHandle
 use ApplicationManagerTools\AmDriver\Core\Cli\ReceptacleHttpKernel;
 use ApplicationManagerTools\AmDriver\Core\Http\NoopAmApiClient;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore;
+use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor;
@@ -45,14 +46,14 @@ final class ReceptacleHttpKernelTest extends TestCase
         // Arrange
         $dataDir = sys_get_temp_dir().'/am-driver-it-'.uniqid('', true);
         $kernel = $this->kernel($dataDir, new CommandCallLog());
-        $body = file_get_contents(dirname(__DIR__).'/fixtures/instance-operational-state-minimal.json');
+        $body = file_get_contents(dirname(__DIR__).'/fixtures/instance-operational-state-am-minimal.json');
         self::assertNotFalse($body);
         $headers = ['X-Instance-Operational-State-Token' => ['dev-state-token']];
 
         // Act
         [$status] = $kernel->handle('POST', '/internal/am/instance-operational-state', $body, $headers);
         $snapshotStore = new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning');
-        $snapshot = $snapshotStore->load('am_ten_10000000-0000-4000-8000-000000000001');
+        $snapshot = $snapshotStore->load('am_ten_30000000-0000-4000-8000-000000000001');
 
         // Assert
         self::assertSame(200, $status);
@@ -73,6 +74,7 @@ final class ReceptacleHttpKernelTest extends TestCase
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),
+                new FileOperationalStateReceiptStore($dataDir.'/operational-state-receipts'),
                 new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning'))
             ),
             '/internal/am/orchestration/commands',

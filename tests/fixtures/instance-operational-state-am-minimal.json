@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "instance-operational-state.v1",
+  "kind": "application_manager.instance_operational_state",
+  "computedAt": "2026-05-14T10:15:30.123Z",
+  "correlationId": "am_state_integration_test",
+  "app": {
+    "appId": "am_app_30000000-0000-4000-8000-000000000001",
+    "appName": "App Test"
+  },
+  "instance": {
+    "instanceId": "am_ins_30000000-0000-4000-8000-000000000001",
+    "tenantId": "am_ten_30000000-0000-4000-8000-000000000001",
+    "location": "https://captain-learning.example/"
+  },
+  "subscription": {
+    "formulaId": "am_sfm_30000000-0000-4000-8000-000000000001",
+    "formulaLabel": "Team",
+    "frozenAt": "2026-01-01T00:00:00.000Z",
+    "subscriptionRevision": 1
+  },
+  "aggregateDirective": {
+    "stance": "ok",
+    "summaryCodes": [],
+    "humanSummary": "Aucune contrainte active.",
+    "strictestResourceKeys": [],
+    "suggestedHttpSemantics": {
+      "defaultForNewMutations": 200,
+      "defaultForReads": 200
+    }
+  },
+  "resources": [
+    {
+      "resourceKey": "seats",
+      "resourceKind": "quota",
+      "label": "Seats",
+      "unit": "count",
+      "consumption": {
+        "value": 9,
+        "asOf": "2026-05-14T10:14:00.000Z",
+        "measurementSource": "application_manager.webhook"
+      },
+      "subscriptionRule": {
+        "limit": 10,
+        "graceLimit": 9,
+        "reactionAtLimit": "block_resource",
+        "reactionInGrace": "warn_and_soft_limit"
+      },
+      "evaluation": {
+        "status": "ok",
+        "percentOfLimit": 90,
+        "percentOfGrace": 100,
+        "breach": false
+      },
+      "instanceBehaviorHints": [
+        {
+          "code": "NO_ACTION",
+          "severity": "informational",
+          "message": "Aucune contrainte supplémentaire pour cette ressource."
+        }
+      ]
+    }
+  ]
+}

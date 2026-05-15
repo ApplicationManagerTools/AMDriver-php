@@ -28,7 +28,7 @@ final class StatePushSampleCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $fixture = $input->getOption('fixture')
-            ?: dirname(__DIR__, 4).'/tests/fixtures/instance-operational-state-minimal.json';
+            ?: dirname(__DIR__, 4).'/tests/fixtures/instance-operational-state-am-minimal.json';
 
         if (!is_file($fixture)) {
             $io->error('Fixture not found: '.$fixture);

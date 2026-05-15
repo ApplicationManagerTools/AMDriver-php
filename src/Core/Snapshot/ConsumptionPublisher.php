@@ -53,7 +53,7 @@ final class ConsumptionPublisher
         $event = new ConsumptionWebhookEvent($tenantId, $resourceKey, $value, $occurredAt, $this->source);
         $response = $this->amApiClient->pushConsumption($event);
 
-        if ($response['statusCode'] >= 200 && $response['statusCode'] < 300) {
+        if (202 === $response['statusCode']) {
             $this->snapshotManager->markPushedToAm($tenantId, $resourceKey, $value, $occurredAt, $response['statusCode']);
         }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory;
 
 use ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore;
+use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
 
@@ -32,6 +33,14 @@ final class StorageFactory
     public static function operationalStateStore(array $config): FileOperationalStateStore
     {
         return new FileOperationalStateStore(self::dataDir($config).'/operational-state');
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public static function operationalStateReceiptStore(array $config): FileOperationalStateReceiptStore
+    {
+        return new FileOperationalStateReceiptStore(self::dataDir($config).'/operational-state-receipts');
     }
 
     /**

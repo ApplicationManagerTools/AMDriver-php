@@ -31,14 +31,22 @@ services:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'operationalStateStore']
         arguments: ['%am_driver.config%']
 
+    ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'operationalStateReceiptStore']
+        arguments: ['%am_driver.config%']
+
     ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager:
         arguments:
             $store: '@ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore'
 
     ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\OperationalStateProcessorFactory', 'create']
         arguments:
             $store: '@ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore'
+            $receiptStore: '@ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore'
             $snapshotManager: '@ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager'
+            $receiver: null
+            $config: '%am_driver.config%'
 
     ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor:
         arguments:

@@ -63,7 +63,7 @@ final class OrchestrationCommandProcessor
             } elseif ($command->operation()->isStart()) {
                 $this->startHandler->handle($command);
             } elseif ($command->operation()->isDestroy()) {
-                throw new ValidationException('DESTROY_INSTANCE is not supported in am-driver v1');
+                throw new ValidationException('DESTROY_INSTANCE is not supported by am-driver v1; see docs/ECARTS-AM.md');
             } else {
                 throw new ValidationException('Unsupported operation');
             }
