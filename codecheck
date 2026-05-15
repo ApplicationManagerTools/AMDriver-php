@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+run_php() {
+  if [ -x ./bin/php ]; then
+    ./bin/php "$@"
+  else
+    php "$@"
+  fi
+}
+
+phpunit_args=(-c phpunit.xml.dist)
+if [ -n "${GITLAB_CI:-}" ] || [ "${CODECHECK_JUNIT:-}" = "1" ]; then
+  phpunit_args+=(--log-junit report.xml --colors=never)
+fi
+
+echo "=== PHP-CS-Fixer (dry-run) ==="
+run_php vendor/bin/php-cs-fixer fix --dry-run --diff --allow-unsupported-php-version=yes
+
+echo "=== PHPStan ==="
+run_php vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=512M
+
+echo "=== PHPUnit ==="
+./bin/phpunit "${phpunit_args[@]}"

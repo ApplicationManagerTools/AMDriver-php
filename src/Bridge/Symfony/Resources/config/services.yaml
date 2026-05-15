@@ -1,0 +1,50 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OrchestrationCommandController:
+        arguments:
+            $orchestrationCommandToken: '%am_driver.config.orchestration_command_token%'
+
+    ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OperationalStateController:
+        arguments:
+            $operationalStateToken: '%am_driver.config.operational_state_token%'
+
+    ApplicationManagerTools\AmDriver\Core\Http\AmApiClient:
+        arguments:
+            $config: '@ApplicationManagerTools\AmDriver\Core\Http\AmApiClientConfig'
+
+    ApplicationManagerTools\AmDriver\Core\Http\AmApiClientConfig:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\AmApiClientConfigFactory', 'create']
+        arguments: ['%am_driver.config%']
+
+    ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'idempotencyStore']
+        arguments: ['%am_driver.config%']
+
+    ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'resourceSnapshotStore']
+        arguments: ['%am_driver.config%']
+
+    ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'operationalStateStore']
+        arguments: ['%am_driver.config%']
+
+    ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager:
+        arguments:
+            $store: '@ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore'
+
+    ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor:
+        arguments:
+            $store: '@ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore'
+            $snapshotManager: '@ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager'
+
+    ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor:
+        arguments:
+            $idempotencyStore: '@ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore'
+
+    ApplicationManagerTools\AmDriver\Core\Snapshot\ConsumptionPublisher:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\ConsumptionPublisherFactory', 'create']
+        arguments:
+            $config: '%am_driver.config%'

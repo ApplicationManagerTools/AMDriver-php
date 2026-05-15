@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "instance-operational-state.v1",
+  "kind": "application_manager.instance_operational_state",
+  "computedAt": "2026-05-14T10:15:30.123Z",
+  "correlationId": "am_state_01JXYZ1234567890ABCDEF",
+  "app": {
+    "appId": "am_app_10000000-0000-4000-8000-000000000001",
+    "appName": "Captain Learning"
+  },
+  "instance": {
+    "instanceId": "am_ins_10000000-0000-4000-8000-000000000001",
+    "tenantId": "am_ten_10000000-0000-4000-8000-000000000001"
+  },
+  "subscription": {
+    "subscriptionId": "am_sub_01JABC",
+    "formulaId": "am_formula_unit",
+    "formulaLabel": "Unit",
+    "frozenAt": "2026-01-10T08:00:00.000Z",
+    "subscriptionRevision": 1
+  },
+  "aggregateDirective": {
+    "stance": "normal",
+    "summaryCodes": [],
+    "humanSummary": "OK"
+  },
+  "resources": []
+}

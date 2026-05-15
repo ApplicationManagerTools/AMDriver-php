@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+# shellcheck source=install-lib/load-env.sh
+source install-lib/load-env.sh
+load_env
+
+if ! command -v docker >/dev/null 2>&1 || ! docker compose version >/dev/null 2>&1; then
+  exec php "$@"
+fi
+
+USERID="$(id -u)"
+GROUPID="$(id -g)"
+export USERID GROUPID
+
+COMPOSE_PROGRESS="${COMPOSE_PROGRESS:-quiet}"
+
+if [ -n "$(docker compose ${DOCKER_COMPOSE_FILES} ps -q php 2>/dev/null)" ]; then
+  exec docker compose ${DOCKER_COMPOSE_FILES} --progress "${COMPOSE_PROGRESS}" exec -T php php "$@"
+fi
+
+exec docker compose ${DOCKER_COMPOSE_FILES} --progress "${COMPOSE_PROGRESS}" run --rm --quiet-pull --quiet-build php php "$@"

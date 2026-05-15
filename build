@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+# shellcheck source=install-lib/load-env.sh
+source install-lib/load-env.sh
+load_env
+
+USERID="$(id -u)"
+GROUPID="$(id -g)"
+export USERID GROUPID
+
+docker compose ${DOCKER_COMPOSE_FILES} build php

@@ -1,0 +1,10 @@
+parameters:
+    level: 8
+    paths:
+        - src
+    excludePaths:
+        - tests
+    ignoreErrors:
+        -
+            message: '#Cannot call method scalarNode\(\) on Symfony\\Component\\Config\\Definition\\Builder\\NodeParentInterface\|null#'
+            path: src/Bridge/Symfony/DependencyInjection/Configuration.php

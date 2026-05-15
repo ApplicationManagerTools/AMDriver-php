@@ -1,0 +1,57 @@
+{
+    "name": "application-manager-tools/am-driver",
+    "description": "Symfony bundle and framework-agnostic core to integrate managed applications with Application Manager (orchestration, consumption, operational state).",
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "keywords": ["application-manager", "orchestration", "symfony-bundle"],
+    "require": {
+        "php": "^7.4|^8.0",
+        "symfony/config": "^5.4|^6.4|^7.0|^8.0",
+        "symfony/console": "^5.4|^6.4|^7.0|^8.0",
+        "symfony/dependency-injection": "^5.4|^6.4|^7.0|^8.0",
+        "symfony/http-client": "^5.4|^6.4|^7.0|^8.0",
+        "symfony/http-foundation": "^5.4|^6.4|^7.0|^8.0",
+        "symfony/http-kernel": "^5.4|^6.4|^7.0|^8.0",
+        "symfony/routing": "^5.4|^6.4|^7.0|^8.0",
+        "symfony/yaml": "^5.4|^6.4|^7.0|^8.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
+        "phpstan/phpstan": "^1.12|^2.0",
+        "phpunit/phpunit": "^9.6|^10.5|^11.0",
+        "symfony/phpunit-bridge": "^5.4|^6.4|^7.0|^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "ApplicationManagerTools\\AmDriver\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "ApplicationManagerTools\\AmDriver\\Tests\\": "tests/"
+        }
+    },
+    "bin": ["bin/am-driver"],
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        },
+        "platform": {
+            "php": "7.4.33"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0-dev"
+        },
+        "symfony": {
+            "require": "^6.4|^7.0|^8.0",
+            "bundles": {
+                "ApplicationManagerTools\\AmDriver\\Bridge\\Symfony\\AmDriverBundle": ["all"]
+            }
+        }
+    }
+}

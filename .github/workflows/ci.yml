@@ -1,0 +1,20 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test PHP 7.4
+        run: |
+          docker run --rm -v "$PWD":/app -w /app composer:2 install --no-interaction --prefer-dist
+          docker run --rm -v "$PWD":/app -w /app php:7.4-cli vendor/bin/phpunit
+          docker run --rm -v "$PWD":/app -w /app php:7.4-cli vendor/bin/phpstan analyse -c phpstan.neon.dist
+      - name: Test PHP 8.3
+        run: |
+          docker run --rm -v "$PWD":/app -w /app php:8.3-cli vendor/bin/phpunit

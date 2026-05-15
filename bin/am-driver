@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use ApplicationManagerTools\AmDriver\Bridge\Console\AmDriverConsoleApplication;
+
+if (is_file($autoload = dirname(__DIR__).'/vendor/autoload.php')) {
+    require $autoload;
+} elseif (is_file($autoload = dirname(__DIR__, 4).'/autoload.php')) {
+    require $autoload;
+} else {
+    fwrite(STDERR, "Composer autoload not found. Run composer install in the package root.\n");
+    exit(1);
+}
+
+$application = new AmDriverConsoleApplication();
+$application->run();

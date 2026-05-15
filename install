@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$ROOT"
+
+# shellcheck source=install-lib/load-env.sh
+source install-lib/load-env.sh
+load_env
+
+echo "------------- Répertoires locaux -------------"
+DATA_PATH="${DATA_PATH:-./var/am-driver}"
+mkdir -p "${DATA_PATH}" var
+
+echo "------------- Composer -------------"
+if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+  ./bin/composer install
+elif command -v composer >/dev/null 2>&1; then
+  composer install
+else
+  echo "Composer absent : image officielle composer (Docker)."
+  docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:/app" -w /app composer:2 install
+fi
+
+if [ "${BUILD_WHEN_INSTALL:-false}" = true ]; then
+  echo "------------- Build image PHP Docker -------------"
+  ./build
+fi
+
+echo "Install terminé. Exemples : ./bin/php -v | ./bin/phpunit | ./bin/php bin/am-driver list"
