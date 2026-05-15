@@ -55,13 +55,22 @@ Sous `{data_dir}/` :
 - `idempotency/` — clés commandes déjà traitées
 - `operational-state-receipts/` — dedup `correlationId` + `computedAt`
 
+## Paramètres Symfony (`am_driver.config.*`)
+
+Le bundle enregistre le tableau `am_driver.config` **et**, pour chaque clé de `config/packages/am_driver.yaml`, un paramètre aplati `am_driver.config.<key>` (ex. `am_driver.config.orchestration_commands_path`). Les routes et services du bundle s’appuient sur ces paramètres.
+
 ## API applicative
 
 ```php
 $publisher->pushResourceConsumption($tenantId, 'seats');
 $publisher->flushPendingToAm($tenantId);
 $snapshotManager->recordMeasurement($tenantId, 'seats', 12);
+$stored = $resourceSnapshotStore->findByTenantId($tenantId); // lecture externe (alias de load)
 ```
+
+## Même application Symfony qu’Application Manager
+
+Voir [INTEGRATION-SAME-APP.md](./INTEGRATION-SAME-APP.md) (dogfooding, boucle Docker `application-manager-nginx`, handlers locaux).
 
 Consommation : un POST AM par `resourceKey` ; `lastPushedToAm` mis à jour seulement sur **HTTP 202**.
 

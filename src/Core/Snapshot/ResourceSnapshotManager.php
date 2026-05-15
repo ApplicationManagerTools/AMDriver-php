@@ -42,6 +42,11 @@ final class ResourceSnapshotManager
         return $this->store->getOrCreate($tenantId);
     }
 
+    public function findByTenantId(string $tenantId): ?ManagedInstanceResourceSnapshot
+    {
+        return $this->store->findByTenantId($tenantId);
+    }
+
     /**
      * @param array<string, mixed> $operationalStateMeta
      */

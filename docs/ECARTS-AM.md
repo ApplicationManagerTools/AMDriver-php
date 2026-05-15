@@ -14,6 +14,9 @@ Alignement sur le **back AM réel** (`ApplicationManager/ApplicationManager/`) e
 | Nombres | `limit` / `consumption.value` souvent en **float** dans le JSON AM | Acceptés string ou number |
 | `DESTROY_INSTANCE` | Émis par AM | **Non implémenté** v1 : HTTP 400 + callback `FAILED` (message explicite) |
 | Route commandes | Une URL par `targetId` dans `ORCHESTRATION_TARGETS_JSON` | **Une route** POST routée par `operation` (variante cahier § 5) |
+| Paramètres Symfony `am_driver.config.<key>` | Requis par routes/services bundle | Enregistrés par `ConfigurationParameters` à l’activation du bundle |
+| Lecture snapshot externe | — | `ResourceSnapshotStoreInterface::findByTenantId()` (= `load()`) |
+| Sonde route récepteur | — | `ConnectivityProbeInterface` + `HttpOrchestrationConnectivityProbe` (optionnel) |
 
 ## Politiques produit (à documenter par l’app hôte)
 

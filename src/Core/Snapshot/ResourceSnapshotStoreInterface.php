@@ -8,5 +8,10 @@ interface ResourceSnapshotStoreInterface
 {
     public function load(string $tenantId): ?ManagedInstanceResourceSnapshot;
 
+    /**
+     * Lecture externe du snapshot persisté pour un tenant (alias sémantique de {@see load()}).
+     */
+    public function findByTenantId(string $tenantId): ?ManagedInstanceResourceSnapshot;
+
     public function save(ManagedInstanceResourceSnapshot $snapshot): void;
 }

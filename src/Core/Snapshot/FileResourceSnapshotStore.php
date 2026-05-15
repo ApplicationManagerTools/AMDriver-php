@@ -23,6 +23,11 @@ final class FileResourceSnapshotStore implements ResourceSnapshotStoreInterface
         }
     }
 
+    public function findByTenantId(string $tenantId): ?ManagedInstanceResourceSnapshot
+    {
+        return $this->load($tenantId);
+    }
+
     public function load(string $tenantId): ?ManagedInstanceResourceSnapshot
     {
         $path = $this->pathFor($tenantId);

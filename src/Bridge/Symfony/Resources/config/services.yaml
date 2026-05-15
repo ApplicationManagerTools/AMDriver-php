@@ -56,3 +56,6 @@ services:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\ConsumptionPublisherFactory', 'create']
         arguments:
             $config: '%am_driver.config%'
+
+    ApplicationManagerTools\AmDriver\Core\Contract\ConnectivityProbeInterface:
+        alias: ApplicationManagerTools\AmDriver\Core\Http\HttpOrchestrationConnectivityProbe

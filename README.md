@@ -3,7 +3,7 @@
 Symfony bundle and framework-agnostic PHP library to integrate **managed applications** with [Application Manager](https://github.com/ApplicationManagerTools) (orchestration commands, consumption webhooks, operational state push).
 
 Specification: [cahier des charges connecteur AM](docs/README.md).  
-Intégration détaillée : [docs/INTEGRATION.md](docs/INTEGRATION.md). Écarts AM : [docs/ECARTS-AM.md](docs/ECARTS-AM.md).
+Intégration détaillée : [docs/INTEGRATION.md](docs/INTEGRATION.md). Même app Symfony qu’AM (dogfooding) : [docs/INTEGRATION-SAME-APP.md](docs/INTEGRATION-SAME-APP.md). Écarts AM : [docs/ECARTS-AM.md](docs/ECARTS-AM.md).
 
 ## Install
 
