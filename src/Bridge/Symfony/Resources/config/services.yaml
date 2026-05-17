@@ -40,6 +40,9 @@ services:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'operationalStateStore']
         arguments: ['%am_driver.config%']
 
+    ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateStoreInterface:
+        alias: ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore
+
     ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'operationalStateReceiptStore']
         arguments: ['%am_driver.config%']

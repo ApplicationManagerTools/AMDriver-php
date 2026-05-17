@@ -66,6 +66,19 @@ use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
 $snapshot = $store->findByTenantId($tenantId); // ou load()
 ```
 
+## Espace disque tenant (handlers STOP/START locaux)
+
+```php
+use ApplicationManagerTools\AmDriver\Core\Tenant\FileTenantWorkspace;
+
+$workspace = new FileTenantWorkspace($tenantsBaseDirectory);
+$workspace->ensureContext($tenantId);
+$workspace->markSuspended($tenantId); // STOP_INSTANCE minimal
+$workspace->clearSuspended($tenantId); // START_INSTANCE
+```
+
+Lecture du dernier état opérationnel reçu : `OperationalStateStoreInterface::load($tenantId)` (pas d’adaptateur hôte dédié).
+
 ## Sonde connectivité (optionnel)
 
 ```php

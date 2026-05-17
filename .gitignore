@@ -7,3 +7,4 @@
 /.env.local
 /var/
 /report.xml
+.php-cs-fixer.cache
