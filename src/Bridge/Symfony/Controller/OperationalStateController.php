@@ -30,8 +30,7 @@ final class OperationalStateController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $token = (string) $request->headers->get('X-Instance-Operational-State-Token', '');
-        if ('' === $token || !hash_equals($this->expectedToken, $token)) {
+        if (!$this->tokenMatches($request)) {
             return new JsonResponse(['error' => 'Invalid operational state token'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -45,5 +44,17 @@ final class OperationalStateController
         } catch (Throwable $e) {
             return new JsonResponse(['error' => 'Transient error'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
+    }
+
+    private function tokenMatches(Request $request): bool
+    {
+        foreach (['X-AM-Application-Token', 'X-Instance-Operational-State-Token'] as $header) {
+            $token = trim((string) $request->headers->get($header, ''));
+            if ('' !== $token && hash_equals($this->expectedToken, $token)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

@@ -30,8 +30,7 @@ final class OrchestrationCommandController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $token = (string) $request->headers->get('X-Orchestration-Command-Token', '');
-        if ('' === $token || !hash_equals($this->expectedToken, $token)) {
+        if (!$this->tokenMatches($request)) {
             return new JsonResponse(['error' => 'Invalid orchestration command token'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -47,5 +46,17 @@ final class OrchestrationCommandController
         } catch (ValidationException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
+    }
+
+    private function tokenMatches(Request $request): bool
+    {
+        foreach (['X-AM-Application-Token', 'X-Orchestration-Command-Token'] as $header) {
+            $token = trim((string) $request->headers->get($header, ''));
+            if ('' !== $token && hash_equals($this->expectedToken, $token)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

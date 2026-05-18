@@ -1,6 +1,5 @@
 {
   "operation": "CREATE_INSTANCE",
-  "targetId": "captain-learning-prod-eu1",
   "appId": "am_app_10000000-0000-4000-8000-000000000001",
   "instanceId": "am_ins_10000000-0000-4000-8000-000000000001",
   "tenantId": "am_ten_10000000-0000-4000-8000-000000000001",

@@ -13,9 +13,6 @@ final class OrchestrationCommand
     private $operation;
 
     /** @var string */
-    private $targetId;
-
-    /** @var string */
     private $appId;
 
     /** @var string */
@@ -33,24 +30,27 @@ final class OrchestrationCommand
     /** @var string */
     private $occurredAt;
 
+    /** @var string|null */
+    private $instanceIntegrationToken;
+
     public function __construct(
         Operation $operation,
-        string $targetId,
         string $appId,
         string $instanceId,
         string $tenantId,
         string $correlationId,
         string $idempotencyKey,
         string $occurredAt,
+        ?string $instanceIntegrationToken = null,
     ) {
         $this->operation = $operation;
-        $this->targetId = $targetId;
         $this->appId = $appId;
         $this->instanceId = $instanceId;
         $this->tenantId = $tenantId;
         $this->correlationId = $correlationId;
         $this->idempotencyKey = $idempotencyKey;
         $this->occurredAt = $occurredAt;
+        $this->instanceIntegrationToken = $instanceIntegrationToken;
     }
 
     /**
@@ -60,32 +60,33 @@ final class OrchestrationCommand
     {
         JsonPayloadValidator::requireKeys(
             $data,
-            ['operation', 'targetId', 'appId', 'instanceId', 'tenantId', 'correlationId', 'idempotencyKey', 'occurredAt']
+            ['operation', 'appId', 'instanceId', 'tenantId', 'correlationId', 'idempotencyKey', 'occurredAt'],
         );
-        foreach (['operation', 'targetId', 'appId', 'instanceId', 'tenantId', 'correlationId', 'idempotencyKey', 'occurredAt'] as $key) {
+        foreach (['operation', 'appId', 'instanceId', 'tenantId', 'correlationId', 'idempotencyKey', 'occurredAt'] as $key) {
             JsonPayloadValidator::requireNonEmptyString($data, $key);
+        }
+
+        $instanceToken = null;
+        if (isset($data['instanceIntegrationToken']) && \is_string($data['instanceIntegrationToken'])) {
+            $trimmed = trim($data['instanceIntegrationToken']);
+            $instanceToken = $trimmed !== '' ? $trimmed : null;
         }
 
         return new self(
             Operation::fromString((string) $data['operation']),
-            (string) $data['targetId'],
             (string) $data['appId'],
             (string) $data['instanceId'],
             (string) $data['tenantId'],
             (string) $data['correlationId'],
             (string) $data['idempotencyKey'],
-            (string) $data['occurredAt']
+            (string) $data['occurredAt'],
+            $instanceToken,
         );
     }
 
     public function operation(): Operation
     {
         return $this->operation;
-    }
-
-    public function targetId(): string
-    {
-        return $this->targetId;
     }
 
     public function appId(): string
@@ -118,14 +119,18 @@ final class OrchestrationCommand
         return $this->occurredAt;
     }
 
+    public function instanceIntegrationToken(): ?string
+    {
+        return $this->instanceIntegrationToken;
+    }
+
     /**
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
-        return [
+        $payload = [
             'operation' => $this->operation->toString(),
-            'targetId' => $this->targetId,
             'appId' => $this->appId,
             'instanceId' => $this->instanceId,
             'tenantId' => $this->tenantId,
@@ -133,5 +138,10 @@ final class OrchestrationCommand
             'idempotencyKey' => $this->idempotencyKey,
             'occurredAt' => $this->occurredAt,
         ];
+        if (null !== $this->instanceIntegrationToken) {
+            $payload['instanceIntegrationToken'] = $this->instanceIntegrationToken;
+        }
+
+        return $payload;
     }
 }

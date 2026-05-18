@@ -13,6 +13,7 @@ use RuntimeException;
 final class FileTenantWorkspace
 {
     private const SUSPENDED_FLAG = 'suspended.flag';
+    private const INSTANCE_TOKEN_FILE = 'instance-integration-token.txt';
 
     /** @var string */
     private $tenantsBaseDirectory;
@@ -52,6 +53,26 @@ final class FileTenantWorkspace
     public function isSuspended(string $tenantId): bool
     {
         return is_file($this->directoryFor($tenantId).'/'.self::SUSPENDED_FLAG);
+    }
+
+    public function storeInstanceIntegrationToken(string $tenantId, string $token): void
+    {
+        $dir = $this->ensureContext($tenantId);
+        $path = $dir.'/'.self::INSTANCE_TOKEN_FILE;
+        if (file_put_contents($path, $token) === false) {
+            throw new RuntimeException(sprintf('Cannot write %s', $path));
+        }
+    }
+
+    public function instanceIntegrationToken(string $tenantId): ?string
+    {
+        $path = $this->directoryFor($tenantId).'/'.self::INSTANCE_TOKEN_FILE;
+        if (!is_file($path)) {
+            return null;
+        }
+        $content = file_get_contents($path);
+
+        return \is_string($content) && trim($content) !== '' ? trim($content) : null;
     }
 
     private function directoryFor(string $tenantId): string
