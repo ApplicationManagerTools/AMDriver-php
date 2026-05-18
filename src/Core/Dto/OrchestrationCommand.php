@@ -69,7 +69,7 @@ final class OrchestrationCommand
         $instanceToken = null;
         if (isset($data['instanceIntegrationToken']) && \is_string($data['instanceIntegrationToken'])) {
             $trimmed = trim($data['instanceIntegrationToken']);
-            $instanceToken = $trimmed !== '' ? $trimmed : null;
+            $instanceToken = '' !== $trimmed ? $trimmed : null;
         }
 
         return new self(

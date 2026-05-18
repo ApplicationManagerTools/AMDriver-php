@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ApplicationManagerTools\AmDriver\Core\Tenant;
 
+use DateTimeImmutable;
+use DateTimeInterface;
 use RuntimeException;
 
 /**
@@ -37,7 +39,7 @@ final class FileTenantWorkspace
     {
         $dir = $this->ensureContext($tenantId);
         $flag = $dir.'/'.self::SUSPENDED_FLAG;
-        if (file_put_contents($flag, (new \DateTimeImmutable())->format(\DateTimeInterface::ATOM)) === false) {
+        if (false === file_put_contents($flag, (new DateTimeImmutable())->format(DateTimeInterface::ATOM))) {
             throw new RuntimeException(sprintf('Cannot write %s', $flag));
         }
     }
@@ -59,7 +61,7 @@ final class FileTenantWorkspace
     {
         $dir = $this->ensureContext($tenantId);
         $path = $dir.'/'.self::INSTANCE_TOKEN_FILE;
-        if (file_put_contents($path, $token) === false) {
+        if (false === file_put_contents($path, $token)) {
             throw new RuntimeException(sprintf('Cannot write %s', $path));
         }
     }
@@ -72,7 +74,7 @@ final class FileTenantWorkspace
         }
         $content = file_get_contents($path);
 
-        return \is_string($content) && trim($content) !== '' ? trim($content) : null;
+        return \is_string($content) && '' !== trim($content) ? trim($content) : null;
     }
 
     private function directoryFor(string $tenantId): string

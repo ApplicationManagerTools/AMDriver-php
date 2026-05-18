@@ -26,7 +26,7 @@ final class AmApiClient implements AmApiClientInterface
     {
         $url = $this->config->baseUrl().'/api/v1/orchestration/consumption-events';
         $options = [
-            'headers' => $this->applicationHeaders(),
+            'headers' => $this->consumptionHeaders(),
             'json' => $event->toArray(),
             'timeout' => $this->config->timeoutSeconds(),
         ];
@@ -42,7 +42,7 @@ final class AmApiClient implements AmApiClientInterface
             'POST',
             $url,
             [
-                'headers' => $this->applicationHeaders(),
+                'headers' => $this->callbackHeaders(),
                 'json' => $request->toArray(),
                 'timeout' => $this->config->timeoutSeconds(),
             ]
@@ -52,7 +52,7 @@ final class AmApiClient implements AmApiClientInterface
     /**
      * @return array<string, string>
      */
-    private function applicationHeaders(): array
+    private function consumptionHeaders(): array
     {
         $token = $this->config->consumptionWebhookToken();
 
@@ -60,6 +60,19 @@ final class AmApiClient implements AmApiClientInterface
             'Content-Type' => 'application/json',
             'X-AM-Application-Token' => $token,
             'X-Consumption-Webhook-Token' => $token,
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function callbackHeaders(): array
+    {
+        $token = $this->config->orchestrationCallbackToken();
+
+        return [
+            'Content-Type' => 'application/json',
+            'X-AM-Application-Token' => $token,
             'X-Orchestration-Callback-Token' => $token,
         ];
     }
