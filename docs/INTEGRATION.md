@@ -39,10 +39,26 @@ Exemple aligné sur `ApplicationManager/.env.local.dist` :
 
 ## Routes exposées (défaut)
 
-| Route | Méthode | En-tête |
-|-------|---------|---------|
-| `/internal/am/orchestration/commands` | POST | `X-Orchestration-Command-Token` |
-| `/internal/am/instance-operational-state` | POST | `X-Instance-Operational-State-Token` |
+Le préfixe est configurable via `route_prefix` (défaut : `am`). Les chemins complets sont dérivés automatiquement :
+
+| Suffixe | Chemin par défaut (`route_prefix: am`) |
+|---------|----------------------------------------|
+| `/orchestration/commands` | `/am/orchestration/commands` |
+| `/instance-operational-state` | `/am/instance-operational-state` |
+
+Exemple pour conserver l’ancien préfixe multi-segments :
+
+```yaml
+am_driver:
+    route_prefix: internal/am
+```
+
+Les clés `orchestration_commands_path` et `operational_state_path` restent disponibles pour surcharger le chemin complet.
+
+| Route (défaut) | Méthode | En-tête |
+|----------------|---------|---------|
+| `/am/orchestration/commands` | POST | `X-Orchestration-Command-Token` |
+| `/am/instance-operational-state` | POST | `X-Instance-Operational-State-Token` |
 
 Corps commande : `operation`, `targetId`, `appId`, `instanceId`, `tenantId`, `correlationId`, `idempotencyKey`, `occurredAt`.
 

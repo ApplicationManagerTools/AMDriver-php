@@ -52,6 +52,7 @@ ApplicationManagerTools\AmDriver\Bridge\Symfony\AmDriverBundle::class => ['all' 
 am_driver:
     am_base_url: '%env(AM_DRIVER_AM_BASE_URL)%'
     source: '%env(AM_DRIVER_SOURCE)%'
+    route_prefix: am   # → /am/orchestration/commands, /am/instance-operational-state
     consumption_webhook_token: '%env(AM_DRIVER_CONSUMPTION_WEBHOOK_TOKEN)%'
     orchestration_callback_token: '%env(AM_DRIVER_ORCHESTRATION_CALLBACK_TOKEN)%'
     orchestration_command_token: '%env(AM_DRIVER_ORCHESTRATION_COMMAND_TOKEN)%'

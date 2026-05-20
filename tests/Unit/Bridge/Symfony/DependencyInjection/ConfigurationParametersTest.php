@@ -20,8 +20,7 @@ final class ConfigurationParametersTest extends TestCase
         $extension->load([[
             'source' => 'application-manager',
             'data_dir' => '/var/am-driver-data',
-            'orchestration_commands_path' => '/internal/am/orchestration/commands',
-            'operational_state_path' => '/internal/am/instance-operational-state',
+            'route_prefix' => 'internal/am',
             'orchestration_command_token' => 'cmd-token',
             'operational_state_token' => 'state-token',
         ]], $container);
@@ -30,6 +29,7 @@ final class ConfigurationParametersTest extends TestCase
         self::assertTrue($container->hasParameter('am_driver.config'));
         self::assertTrue($container->hasParameter('am_driver.config.source'));
         self::assertSame('application-manager', $container->getParameter('am_driver.config.source'));
+        self::assertSame('internal/am', $container->getParameter('am_driver.config.route_prefix'));
         self::assertSame(
             '/internal/am/orchestration/commands',
             $container->getParameter('am_driver.config.orchestration_commands_path'),
@@ -39,5 +39,30 @@ final class ConfigurationParametersTest extends TestCase
             $container->getParameter('am_driver.config.operational_state_path'),
         );
         self::assertSame('cmd-token', $container->getParameter('am_driver.config.orchestration_command_token'));
+    }
+
+    public function testExtensionUsesDefaultRoutePrefixWhenOmitted(): void
+    {
+        // Arrange
+        $container = new ContainerBuilder();
+        $extension = new AmDriverExtension();
+
+        // Act
+        $extension->load([[
+            'source' => 'application-manager',
+            'orchestration_command_token' => 'cmd-token',
+            'operational_state_token' => 'state-token',
+        ]], $container);
+
+        // Assert
+        self::assertSame('am', $container->getParameter('am_driver.config.route_prefix'));
+        self::assertSame(
+            '/am/orchestration/commands',
+            $container->getParameter('am_driver.config.orchestration_commands_path'),
+        );
+        self::assertSame(
+            '/am/instance-operational-state',
+            $container->getParameter('am_driver.config.operational_state_path'),
+        );
     }
 }

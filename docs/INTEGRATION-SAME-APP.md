@@ -10,9 +10,9 @@ Cas **dogfooding** : l’API Application Manager et le récepteur `am-driver` to
 Boucle typique :
 
 1. AM enregistre une `AppInstance` ; l’intégration sortante est sur l’agrégat **App** (`ManagedAppIntegration`).
-2. AM dispatch `CREATE_INSTANCE` → `POST /internal/am/orchestration/commands` (même conteneur PHP / nginx).
+2. AM dispatch `CREATE_INSTANCE` → `POST {route_prefix}/orchestration/commands` (même conteneur PHP / nginx ; ex. `route_prefix: internal/am`).
 3. Handler hôte crée le contexte tenant + snapshot local ; callback → `POST /api/v1/orchestration/commands/callbacks`.
-4. AM push `instance-operational-state.v1` → `POST /internal/am/instance-operational-state`.
+4. AM push `instance-operational-state.v1` → `POST {route_prefix}/instance-operational-state`.
 5. Consommations sortantes : `ConsumptionPublisher` → `POST /api/v1/orchestration/consumption-events`.
 
 ## Configuration Docker (réseau interne)
@@ -20,7 +20,7 @@ Boucle typique :
 Configurer l’agrégat **App** (API `PUT /api/v1/applications/{appId}/integration` ou `./bin/load-fixtures`) :
 
 - `baseUrl` : `http://application-manager-nginx` (depuis le conteneur PHP) ou `http://127.0.0.1:12180` sur l’hôte ;
-- chemins : `/internal/am/orchestration/commands`, `/internal/am/instance-operational-state` ;
+- `route_prefix: internal/am` côté bundle (chemins dérivés : `/internal/am/orchestration/commands`, `/internal/am/instance-operational-state`) ;
 - jeton application : credential en base, aligné sur `INTEGRATION_APPLICATION_TOKEN` / `config/packages/am_driver.yaml` (`consumption_webhook_token`, `orchestration_callback_token`, récepteur commandes et état).
 
 ## Développement hors Docker (hôte)
@@ -29,8 +29,8 @@ Remplacer `application-manager-nginx` par `http://127.0.0.1:12180` (ou `URL_API`
 
 ## Sécurité HTTP
 
-- Routes `/internal/am/*` : **pas de JWT** ; authentification par en-têtes dédiés du bundle.
-- Firewall Symfony hôte : `security: false` sur `^/internal/am` (voir doc projet hôte).
+- Routes récepteur (`{route_prefix}/*`) : **pas de JWT** ; authentification par en-têtes dédiés du bundle.
+- Firewall Symfony hôte : `security: false` sur le préfixe configuré (ex. `^/internal/am` — voir doc projet hôte).
 - API manager `/api/v1/*` : JWT inchangé.
 
 ## Handlers métier (hôte)
