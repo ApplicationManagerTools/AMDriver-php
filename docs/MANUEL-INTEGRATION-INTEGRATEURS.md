@@ -28,7 +28,7 @@ Sans ce lien, AM ne peut ni provisionner correctement vos tenants, ni appliquer 
 | Orchestration | Envoie les commandes vers une **cible** (`targetId`) configurée | Expose une URL de réception ; exécute create / stop / start |
 | Plafonds & politiques | Décide des réactions (blocage, surfacturation, etc.) | Mesure la consommation réelle et la notifie |
 | État opérationnel | Construit et **pousse** le JSON d’état vers votre URL | Reçoit, valide, persiste ; met à jour la corrélation locale (snapshot) |
-| Jetons / sécurité | `ORCHESTRATION_TARGETS_JSON`, webhooks sortants | Mêmes secrets côté bundle `am_driver` (en-têtes dédiés) |
+| Jetons / sécurité | `ManagedAppIntegration` sur l’agrégat App (voir ADR0002), webhooks sortants | Mêmes secrets côté bundle `am_driver` (en-têtes dédiés) |
 
 Le bundle **am-driver** dans votre code Symfony fournit les **routes réceptrices**, la **persistance locale** (snapshots, idempotence, dernier état opérationnel) et les **clients HTTP** vers l’API AM — votre équipe fournit surtout les **handlers métier** et la **politique d’envoi** des consommations.
 
@@ -71,7 +71,7 @@ Traitement minimal : valider schéma / identité tenant, **persister** le docume
 Côté AM (exploitation ou back-office selon votre processus) :
 
 1. **Application catalogue** : créer ou mettre à jour l’application avec les **définitions de ressources** et les **formules d’abonnement** qui référencent ces clés.
-2. **Cible d’orchestration** : ajouter une entrée dans `ORCHESTRATION_TARGETS_JSON` avec au minimum `url`, `token`, `operationalStateUrl`, `operationalStateToken` pointant vers **votre** base URL et les mêmes secrets que dans `config/packages/am_driver.yaml`.
+2. **Cible d’orchestration** : ajouter une entrée dans `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) avec au minimum `url`, `token`, `operationalStateUrl`, `operationalStateToken` pointant vers **votre** base URL et les mêmes secrets que dans `config/packages/am_driver.yaml`.
 3. **Instance** : lors de la création / rattachement d’instance, renseigner le **`targetId`** correspondant à cette entrée pour que les commandes et le push d’état atteignent votre environnement.
 
 Sans `targetId` cohérent et JSON de cibles complet, AM ne dispatche pas les commandes et ne peut pas pousser l’état opérationnel (voir messages d’erreur de connectivité dans la doc AM).
@@ -108,7 +108,7 @@ En résumé pour un intégrateur **Captain Learning** :
 1. **Catalogue** : trois `resourceKey` ci-dessus + formules négociées avec le métier AM.
 2. **`source` produit** : utiliser la valeur stable `captain-learning` (voir tableau du README du bundle).
 3. **Implémentation** : bundle + handlers + mise à jour du snapshot + push consommation ; route POST pour l’état opérationnel.
-4. **Rattachement AM** : entrée `captain-learning-prod-eu1` (ou autre id stable) dans `ORCHESTRATION_TARGETS_JSON` + instances créées avec ce `targetId`.
+4. **Rattachement AM** : entrée `captain-learning-prod-eu1` (ou autre id stable) dans `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) + instances créées avec ce `targetId`.
 
 ---
 

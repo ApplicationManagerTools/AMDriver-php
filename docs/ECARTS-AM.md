@@ -8,12 +8,12 @@ Alignement sur le **back AM réel** (`ApplicationManager/ApplicationManager/`) e
 |-------|----------------|-----------|
 | `CREATE_INSTANCE` sans `tenantSlug` / `tenantDisplayName` | `SendOrchestrationCommandHttpGateway` n’envoie pas ces champs | Handlers reçoivent `OrchestrationCommand` tel quel ; dérivation locale documentée côté produit hôte |
 | `START_INSTANCE` | `POST /api/v1/instances/{id}/start` + commande `…:start_instance:v1` | Handler + route unique sur `operation` (OK) |
-| Push état opérationnel | `ORCHESTRATION_TARGETS_JSON` : `operationalStateUrl`, `operationalStateToken` | Route configurable + en-tête `X-Instance-Operational-State-Token` |
+| Push état opérationnel | `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) : `operationalStateUrl`, `operationalStateToken` | Route configurable + en-tête `X-Instance-Operational-State-Token` |
 | `payment_modalities` | Absent du builder domaine | Non exigé ; champs inconnus dans `resources[]` ignorés |
 | Réactions domaine | `block_resource`, `stop_instance`, … | Parsing tolérant (pas de validation stricte des hints) |
 | Nombres | `limit` / `consumption.value` souvent en **float** dans le JSON AM | Acceptés string ou number |
 | `DESTROY_INSTANCE` | Émis par AM | **Non implémenté** v1 : HTTP 400 + callback `FAILED` (message explicite) |
-| Route commandes | Une URL par `targetId` dans `ORCHESTRATION_TARGETS_JSON` | **Une route** POST routée par `operation` (variante cahier § 5) |
+| Route commandes | Une URL par `targetId` dans `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) | **Une route** POST routée par `operation` (variante cahier § 5) |
 | Paramètres Symfony `am_driver.config.<key>` | Requis par routes/services bundle | Enregistrés par `ConfigurationParameters` à l’activation du bundle |
 | Lecture snapshot externe | — | `ResourceSnapshotStoreInterface::findByTenantId()` (= `load()`) |
 | Sonde route récepteur | — | `ConnectivityProbeInterface` + `HttpOrchestrationConnectivityProbe` (optionnel) |

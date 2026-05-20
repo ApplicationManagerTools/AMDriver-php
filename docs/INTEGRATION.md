@@ -8,7 +8,7 @@
 
 ## Configuration (produit hôte)
 
-### Côté Application Manager (`ORCHESTRATION_TARGETS_JSON`)
+### Côté Application Manager (`ManagedAppIntegration` sur l’agrégat App (voir ADR0002))
 
 Exemple aligné sur `ApplicationManager/.env.local.dist` :
 
@@ -30,7 +30,7 @@ Exemple aligné sur `ApplicationManager/.env.local.dist` :
 | `am_base_url` | `AM_DRIVER_AM_BASE_URL` ou `URL_API` | Base API AM |
 | `consumption_webhook_token` | `AM_DRIVER_CONSUMPTION_WEBHOOK_TOKEN` | `WEBHOOK_CONSUMPTION_TOKEN` |
 | `orchestration_callback_token` | `AM_DRIVER_ORCHESTRATION_CALLBACK_TOKEN` | `ORCHESTRATION_CALLBACK_TOKEN` |
-| `orchestration_command_token` | `AM_DRIVER_ORCHESTRATION_COMMAND_TOKEN` | token dans `ORCHESTRATION_TARGETS_JSON` |
+| `orchestration_command_token` | `AM_DRIVER_ORCHESTRATION_COMMAND_TOKEN` | token dans `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) |
 | `operational_state_token` | `AM_DRIVER_OPERATIONAL_STATE_TOKEN` | `operationalStateToken` |
 | `source` | `AM_DRIVER_SOURCE` | `captain-learning`, `accident-prediction`, `application-manager` |
 | `expected_tenant_id` | `AM_DRIVER_EXPECTED_TENANT_ID` | (optionnel) garde-fou mono-tenant |

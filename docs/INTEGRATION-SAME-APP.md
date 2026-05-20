@@ -4,12 +4,12 @@ Cas **dogfooding** : l’API Application Manager et le récepteur `am-driver` to
 
 ## Principe
 
-- **Côté AM (orchestrateur)** : `ORCHESTRATION_TARGETS_JSON` pointe vers les routes **internes** du même processus.
+- **Côté AM (orchestrateur)** : `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) pointe vers les routes **internes** du même processus.
 - **Côté am-driver (application gérée)** : handlers métier locaux + persistance sous `{data_dir}/`.
 
 Boucle typique :
 
-1. AM enregistre une `AppInstance` avec `targetId` (ex. `application-manager-self`).
+1. AM enregistre une `AppInstance` ; l’intégration sortante est sur l’agrégat **App** (`ManagedAppIntegration`).
 2. AM dispatch `CREATE_INSTANCE` → `POST /internal/am/orchestration/commands` (même conteneur PHP / nginx).
 3. Handler hôte crée le contexte tenant + snapshot local ; callback → `POST /api/v1/orchestration/commands/callbacks`.
 4. AM push `instance-operational-state.v1` → `POST /internal/am/instance-operational-state`.
@@ -17,25 +17,11 @@ Boucle typique :
 
 ## Configuration Docker (réseau interne)
 
-Dans `ORCHESTRATION_TARGETS_JSON` (côté AM) :
+Configurer l’agrégat **App** (API `PUT /api/v1/applications/{appId}/integration` ou `./bin/load-fixtures`) :
 
-```json
-{
-  "application-manager-self": {
-    "url": "http://application-manager-nginx/internal/am/orchestration/commands",
-    "token": "<AM_DRIVER_ORCHESTRATION_COMMAND_TOKEN>",
-    "operationalStateUrl": "http://application-manager-nginx/internal/am/instance-operational-state",
-    "operationalStateToken": "<AM_DRIVER_OPERATIONAL_STATE_TOKEN>"
-  }
-}
-```
-
-Les jetons doivent être **identiques** entre :
-
-- `AM_DRIVER_ORCHESTRATION_COMMAND_TOKEN` / `AM_DRIVER_OPERATIONAL_STATE_TOKEN` (bundle), et
-- `token` / `operationalStateToken` dans le JSON ci-dessus.
-
-Réutiliser aussi `WEBHOOK_CONSUMPTION_TOKEN` et `ORCHESTRATION_CALLBACK_TOKEN` pour les clients HTTP sortants du bundle (`consumption_webhook_token`, `orchestration_callback_token`).
+- `baseUrl` : `http://application-manager-nginx` (depuis le conteneur PHP) ou `http://127.0.0.1:12180` sur l’hôte ;
+- chemins : `/internal/am/orchestration/commands`, `/internal/am/instance-operational-state` ;
+- jeton application : credential en base, aligné sur `INTEGRATION_APPLICATION_TOKEN` / `config/packages/am_driver.yaml` (`consumption_webhook_token`, `orchestration_callback_token`, récepteur commandes et état).
 
 ## Développement hors Docker (hôte)
 
