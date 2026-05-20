@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ApplicationManagerTools\AmDriver\Tests\Integration;
 
+use ApplicationManagerTools\AmDriver\Bridge\Symfony\DependencyInjection\ReceiverRoutePaths;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\CommandCallLog;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingCreateInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStartInstanceHandler;
@@ -32,8 +33,9 @@ final class ReceptacleHttpKernelTest extends TestCase
         $headers = ['X-Orchestration-Command-Token' => ['dev-command-token']];
 
         // Act
-        [$status1] = $kernel->handle('POST', '/internal/am/orchestration/commands', $body, $headers);
-        [$status2] = $kernel->handle('POST', '/internal/am/orchestration/commands', $body, $headers);
+        $orchestrationPath = ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
+        [$status1] = $kernel->handle('POST', $orchestrationPath, $body, $headers);
+        [$status2] = $kernel->handle('POST', $orchestrationPath, $body, $headers);
 
         // Assert
         self::assertSame(200, $status1);
@@ -51,7 +53,8 @@ final class ReceptacleHttpKernelTest extends TestCase
         $headers = ['X-Instance-Operational-State-Token' => ['dev-state-token']];
 
         // Act
-        [$status] = $kernel->handle('POST', '/internal/am/instance-operational-state', $body, $headers);
+        $statePath = ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
+        [$status] = $kernel->handle('POST', $statePath, $body, $headers);
         $snapshotStore = new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning');
         $snapshot = $snapshotStore->load('am_ten_30000000-0000-4000-8000-000000000001');
 
@@ -77,8 +80,8 @@ final class ReceptacleHttpKernelTest extends TestCase
                 new FileOperationalStateReceiptStore($dataDir.'/operational-state-receipts'),
                 new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning'))
             ),
-            '/internal/am/orchestration/commands',
-            '/internal/am/instance-operational-state',
+            ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
+            ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
             'dev-command-token',
             'dev-state-token'
         );

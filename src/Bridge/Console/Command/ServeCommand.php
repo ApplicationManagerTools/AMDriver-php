@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ApplicationManagerTools\AmDriver\Bridge\Console\Command;
 
+use ApplicationManagerTools\AmDriver\Bridge\Symfony\DependencyInjection\ReceiverRoutePaths;
 use ApplicationManagerTools\AmDriver\Core\Cli\ReceptacleBootstrapFactory;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -31,8 +32,8 @@ final class ServeCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $dataDir = (string) $input->getOption('data-dir');
         $source = (string) $input->getOption('source');
-        $orchestrationPath = '/internal/am/orchestration/commands';
-        $statePath = '/internal/am/instance-operational-state';
+        $orchestrationPath = ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
+        $statePath = ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
 
         if (!is_dir($dataDir) && !mkdir($dataDir, 0775, true) && !is_dir($dataDir)) {
             $io->error('Cannot create data directory');
