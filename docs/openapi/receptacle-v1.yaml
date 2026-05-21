@@ -1,0 +1,388 @@
+openapi: 3.1.1
+info:
+  title: am-driver — API récepteur (application gérée)
+  version: 1.0.0
+  description: >
+    Contrat HTTP **entrant** exposé par le bundle `application-manager-tools/am-driver` sur l’application
+    gérée (récepteur d’orchestration et d’état opérationnel).
+
+    Les `paths` sont des **suffixes** : l’URL complète est `{server}/{suffixe}`, où `server` doit se terminer
+    par le `route_prefix` Symfony (`config/packages/am_driver.yaml`), sans slash final.
+
+    Exemples : `route_prefix: am` → `http://host/am` ; `api/v1/am` → `http://host/api/v1/am` ;
+    `internal/am` → `http://host/internal/am`.
+
+    **Réponses** : JSON plat (`accepted`, `error`) — **sans** enveloppe `ApiResponseBody` du back AM.
+
+    Appels **sortants** vers l’API AM : `am-client-v1.yaml` ; plateforme :
+    `ApplicationManager/docker/swagger/v1/openapi.yaml`.
+
+    Kit Swagger (Try it out sur l’app hôte) : `docs/openapi/kit/README.md`.
+  contact:
+    name: Application Manager Tools
+    url: https://github.com/ApplicationManagerTools/AMDriver-php
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+tags:
+  - name: Receptacle
+    description: Routes HTTP entrantes (AM → application gérée)
+
+servers:
+  - url: '{scheme}://{host}/{routePrefix}'
+    description: Application gérée — adapter host et route_prefix
+    variables:
+      scheme:
+        default: http
+        enum:
+          - http
+          - https
+      host:
+        default: localhost:11780
+      routePrefix:
+        default: api/v1/am
+        description: Valeur de am_driver.route_prefix (sans slash initial ni final)
+  - url: http://127.0.0.1:12180/internal/am
+    description: Application Manager local (dogfooding, route_prefix internal/am)
+  - url: http://127.0.0.1:18099/am
+    description: Réceptacle CLI bundle (`vendor/bin/am-driver serve`, route_prefix am)
+
+paths:
+  /orchestration/commands:
+    post:
+      tags:
+        - Receptacle
+      summary: Réception d’une commande d’orchestration
+      operationId: receptacleOrchestrationCommandCreate
+      description: >
+        Point d’entrée unique pour `CREATE_INSTANCE`, `STOP_INSTANCE` et `START_INSTANCE`.
+        `DESTROY_INSTANCE` est rejeté en v1 (`400`). Idempotence sur `idempotencyKey` :
+        rejeu sans effet secondaire → `200` avec `alreadyProcessed: true`.
+        En cas d’échec handler, le bundle notifie AM via callback (voir `am-client-v1.yaml`).
+      security:
+        - orchestrationCommandToken: []
+      parameters:
+        - $ref: '#/components/parameters/OrchestrationCommandTokenHeader'
+        - $ref: '#/components/parameters/AmApplicationTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrchestrationCommand'
+            examples:
+              createInstance:
+                summary: CREATE_INSTANCE (fixture bundle)
+                value:
+                  operation: CREATE_INSTANCE
+                  appId: am_app_10000000-0000-4000-8000-000000000001
+                  instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                  tenantId: am_ten_10000000-0000-4000-8000-000000000001
+                  correlationId: corr_test_001
+                  idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
+                  occurredAt: '2026-05-14T15:35:00+00:00'
+              stopInstance:
+                summary: STOP_INSTANCE
+                value:
+                  operation: STOP_INSTANCE
+                  appId: am_app_10000000-0000-4000-8000-000000000001
+                  instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                  tenantId: am_ten_10000000-0000-4000-8000-000000000001
+                  correlationId: corr_stop_001
+                  idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:stop_instance:v1
+                  occurredAt: '2026-05-14T16:00:00+00:00'
+      responses:
+        '200':
+          description: Commande acceptée ou déjà traitée (idempotence)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrchestrationCommandAccepted'
+              examples:
+                processed:
+                  value:
+                    accepted: true
+                    alreadyProcessed: false
+                idempotentReplay:
+                  value:
+                    accepted: true
+                    alreadyProcessed: true
+        '400':
+          description: JSON invalide, champs manquants, opération non supportée ou échec métier non réessayable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptacleError'
+              example:
+                error: 'DESTROY_INSTANCE is not supported by am-driver v1; see docs/ECARTS-AM.md'
+        '401':
+          description: Jeton absent ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptacleError'
+              example:
+                error: Invalid orchestration command token
+        '500':
+          description: Erreur transitoire (handler ou interne) — AM peut réessayer la commande
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptacleError'
+              example:
+                error: Transient error
+
+  /instance-operational-state:
+    post:
+      tags:
+        - Receptacle
+      summary: Réception du document d’état opérationnel d’instance
+      operationId: receptacleInstanceOperationalStateCreate
+      description: >
+        Corps aligné sur le document poussé par AM (`instance-operational-state.v1`,
+        `kind: application_manager.instance_operational_state`). Validation minimale côté bundle :
+        `schemaVersion`, `kind`, `instance.tenantId` ; garde-fous optionnels `expected_tenant_id` /
+        `expected_instance_id` en configuration Symfony.
+      security:
+        - operationalStateToken: []
+      parameters:
+        - $ref: '#/components/parameters/OperationalStateTokenHeader'
+        - $ref: '#/components/parameters/AmApplicationTokenHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstanceOperationalState'
+            examples:
+              minimal:
+                summary: Document minimal (fixture)
+                value:
+                  schemaVersion: instance-operational-state.v1
+                  kind: application_manager.instance_operational_state
+                  computedAt: '2026-05-14T10:15:30.123Z'
+                  correlationId: am_state_01JXYZ1234567890ABCDEF
+                  app:
+                    appId: am_app_10000000-0000-4000-8000-000000000001
+                    appName: Captain Learning
+                  instance:
+                    instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                    tenantId: am_ten_10000000-0000-4000-8000-000000000001
+                  subscription:
+                    subscriptionId: am_sub_01JABC
+                    formulaId: am_formula_unit
+                    formulaLabel: Unit
+                    frozenAt: '2026-01-10T08:00:00.000Z'
+                    subscriptionRevision: 1
+                  aggregateDirective:
+                    stance: normal
+                    summaryCodes: []
+                    humanSummary: OK
+                  resources: []
+      responses:
+        '200':
+          description: État persisté localement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationalStateAccepted'
+              example:
+                accepted: true
+        '400':
+          description: Schéma incompatible, kind inconnu, tenantId / instanceId incohérents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptacleError'
+              example:
+                error: Unsupported kind
+        '401':
+          description: Jeton absent ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptacleError'
+              example:
+                error: Invalid operational state token
+        '500':
+          description: Erreur transitoire — AM peut réessayer le push
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReceptacleError'
+              example:
+                error: Transient error
+
+components:
+  securitySchemes:
+    orchestrationCommandToken:
+      type: apiKey
+      in: header
+      name: X-Orchestration-Command-Token
+      description: >
+        Jeton partagé (`am_driver.orchestration_command_token` / `AM_DRIVER_ORCHESTRATION_COMMAND_TOKEN`).
+        Alias accepté : `X-AM-Application-Token` avec la même valeur.
+    operationalStateToken:
+      type: apiKey
+      in: header
+      name: X-Instance-Operational-State-Token
+      description: >
+        Jeton partagé (`am_driver.operational_state_token` / `AM_DRIVER_OPERATIONAL_STATE_TOKEN`).
+        Alias accepté : `X-AM-Application-Token` avec la même valeur.
+
+  parameters:
+    OrchestrationCommandTokenHeader:
+      name: X-Orchestration-Command-Token
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Jeton commandes (prioritaire si présent).
+    OperationalStateTokenHeader:
+      name: X-Instance-Operational-State-Token
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Jeton état opérationnel (prioritaire si présent).
+    AmApplicationTokenHeader:
+      name: X-AM-Application-Token
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Alias générique accepté pour les deux routes (même secret que le jeton dédié).
+
+  schemas:
+    ReceptacleError:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Message d’erreur lisible (validation, auth, transitoire).
+
+    OrchestrationCommandAccepted:
+      type: object
+      required:
+        - accepted
+        - alreadyProcessed
+      properties:
+        accepted:
+          type: boolean
+          const: true
+        alreadyProcessed:
+          type: boolean
+          description: true si la clé d’idempotence était déjà enregistrée.
+
+    OperationalStateAccepted:
+      type: object
+      required:
+        - accepted
+      properties:
+        accepted:
+          type: boolean
+          const: true
+
+    OrchestrationCommand:
+      type: object
+      required:
+        - operation
+        - appId
+        - instanceId
+        - tenantId
+        - correlationId
+        - idempotencyKey
+        - occurredAt
+      properties:
+        operation:
+          type: string
+          enum:
+            - CREATE_INSTANCE
+            - STOP_INSTANCE
+            - START_INSTANCE
+            - DESTROY_INSTANCE
+          description: >
+            `DESTROY_INSTANCE` est reçu par le parseur mais rejeté en v1 par le processeur (`400`).
+        appId:
+          type: string
+          examples:
+            - am_app_10000000-0000-4000-8000-000000000001
+        instanceId:
+          type: string
+          examples:
+            - am_ins_10000000-0000-4000-8000-000000000001
+        tenantId:
+          type: string
+          examples:
+            - am_ten_10000000-0000-4000-8000-000000000001
+        correlationId:
+          type: string
+        idempotencyKey:
+          type: string
+          description: Clé stable pour idempotence locale et corrélation callback AM.
+        occurredAt:
+          type: string
+          format: date-time
+        instanceIntegrationToken:
+          type: string
+          description: >
+            Jeton d’intégration instance (optionnel, présent sur `CREATE_INSTANCE` sortant AM).
+            Non vide si fourni.
+
+    InstanceOperationalState:
+      type: object
+      required:
+        - schemaVersion
+        - kind
+        - instance
+      description: >
+        Schéma logique `instance-operational-state.v1`. Champs additionnels (`app`, `subscription`,
+        `aggregateDirective`, `resources`, …) sont persistés tels quels ; seuls les champs requis
+        ci-dessous sont validés strictement par le bundle.
+      properties:
+        schemaVersion:
+          type: string
+          const: instance-operational-state.v1
+        kind:
+          type: string
+          const: application_manager.instance_operational_state
+        computedAt:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
+        app:
+          type: object
+          unevaluatedProperties: true
+          properties:
+            appId:
+              type: string
+            appName:
+              type: string
+        instance:
+          type: object
+          required:
+            - tenantId
+          properties:
+            tenantId:
+              type: string
+            instanceId:
+              type: string
+            location:
+              type: string
+              format: uri
+          unevaluatedProperties: true
+        subscription:
+          type: object
+          unevaluatedProperties: true
+        aggregateDirective:
+          type: object
+          unevaluatedProperties: true
+        resources:
+          type: array
+          items:
+            type: object
+            unevaluatedProperties: true

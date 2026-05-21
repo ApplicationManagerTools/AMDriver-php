@@ -1,0 +1,180 @@
+openapi: 3.1.1
+info:
+  title: am-driver — client HTTP vers Application Manager
+  version: 1.0.0
+  description: >
+    Appels **sortants** effectués par `ApplicationManagerTools\AmDriver\Core\Http\AmApiClient`
+    (et équivalents) vers l’API publique AM.
+
+    **Source de vérité** côté plateforme : `ApplicationManager/docker/swagger/v1/openapi.yaml`
+    (`operationId`: `orchestrationConsumptionEventsCreate`, `orchestrationCommandCallbackCreate`).
+
+    Les réponses AM utilisent l’enveloppe `ApiResponseBody` (`success`, `data`, `error`, `error_message`).
+    Ce fichier documente le **corps JSON** envoyé par le bundle et les en-têtes qu’il pose.
+  contact:
+    name: Application Manager Tools
+    url: https://github.com/ApplicationManagerTools/AMDriver-php
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+tags:
+  - name: AmOutbound
+    description: Consommation et callbacks (application gérée → AM)
+
+servers:
+  - url: '{amBaseUrl}'
+    description: Base API AM (`am_driver.am_base_url` / `AM_DRIVER_AM_BASE_URL`)
+    variables:
+      amBaseUrl:
+        default: http://127.0.0.1:12180
+        description: URL sans slash final
+
+paths:
+  /api/v1/orchestration/consumption-events:
+    post:
+      tags:
+        - AmOutbound
+      summary: Pousser un événement de consommation (bundle → AM)
+      operationId: amDriverPushConsumption
+      description: >
+        Implémenté par `AmApiClient::pushConsumption`. Retries automatiques sur réponses 5xx
+        (`consumption_max_retries`, `consumption_retry_delay_ms`). Un événement par ressource en v1.
+      parameters:
+        - name: X-Consumption-Webhook-Token
+          in: header
+          required: true
+          schema:
+            type: string
+          description: >
+            `am_driver.consumption_webhook_token` — aligné sur `WEBHOOK_CONSUMPTION_TOKEN` AM.
+        - name: X-AM-Application-Token
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Alias envoyé avec la même valeur que `X-Consumption-Webhook-Token`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumptionWebhookEvent'
+            example:
+              tenantId: am_ten_10000000-0000-4000-8000-000000000001
+              resourceKey: seats
+              value: 12
+              occurredAt: '2026-05-14T12:30:45+00:00'
+              source: captain-learning
+      responses:
+        '202':
+          description: Accepté par AM (voir OpenAPI plateforme pour enveloppe `data`)
+        '400':
+          description: Validation AM
+        '403':
+          description: Token invalide
+
+  /api/v1/orchestration/commands/callbacks:
+    post:
+      tags:
+        - AmOutbound
+      summary: Notifier le résultat d’exécution d’une commande (bundle → AM)
+      operationId: amDriverReportOrchestrationCallback
+      description: >
+        Appelé par `OrchestrationCommandProcessor` après traitement ou échec handler.
+        Implémenté par `AmApiClient::reportOrchestrationCallback`.
+      parameters:
+        - name: X-Orchestration-Callback-Token
+          in: header
+          required: true
+          schema:
+            type: string
+          description: >
+            `am_driver.orchestration_callback_token` — aligné sur `ORCHESTRATION_CALLBACK_TOKEN` AM.
+        - name: X-AM-Application-Token
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Alias envoyé avec la même valeur que `X-Orchestration-Callback-Token`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrchestrationCommandCallbackRequest'
+            examples:
+              succeeded:
+                value:
+                  idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
+                  status: SUCCEEDED
+              failed:
+                value:
+                  idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
+                  status: FAILED
+                  message: Provisioning failed
+              retryable:
+                value:
+                  idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
+                  status: RETRYABLE_FAILURE
+                  message: Database temporarily unavailable
+      responses:
+        '202':
+          description: Callback accepté par AM
+        '400':
+          description: Payload invalide
+        '403':
+          description: Token invalide
+        '404':
+          description: Commande inconnue côté AM
+
+components:
+  schemas:
+    ConsumptionWebhookEvent:
+      type: object
+      required:
+        - tenantId
+        - resourceKey
+        - value
+        - occurredAt
+        - source
+      properties:
+        tenantId:
+          type: string
+          example: am_ten_10000000-0000-4000-8000-000000000001
+        resourceKey:
+          type: string
+          example: seats
+        value:
+          oneOf:
+            - type: string
+            - type: number
+          description: Mesure brute — pas d’objet ni de tableau JSON.
+        occurredAt:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+            - captain-learning
+            - accident-prediction
+            - application-manager
+          description: Identifiant produit stable (voir README bundle).
+
+    OrchestrationCommandCallbackRequest:
+      type: object
+      required:
+        - idempotencyKey
+        - status
+      properties:
+        idempotencyKey:
+          type: string
+        status:
+          type: string
+          enum:
+            - SUCCEEDED
+            - FAILED
+            - RETRYABLE_FAILURE
+        message:
+          type: string
+          description: Détail d’échec (optionnel).

@@ -1,0 +1,15 @@
+# Exemples de servers (section openapi.servers) — à reporter dans
+# docker/swagger/am-driver/receptacle-v1.yaml après sync-openapi.sh,
+# ou à sélectionner / éditer dans Swagger UI (menu Servers).
+
+# Captain Learning (route_prefix: api/v1/am, nginx 11780)
+# - url: http://localhost:11780/api/v1/am
+
+# Application Manager dogfooding (route_prefix: internal/am, nginx 12180)
+# - url: http://127.0.0.1:12180/internal/am
+
+# Réceptacle CLI am-driver (route_prefix: am, port RECEPTACLE_PORT)
+# - url: http://127.0.0.1:18099/am
+
+# Production (exemple)
+# - url: https://app.example.com/api/v1/am

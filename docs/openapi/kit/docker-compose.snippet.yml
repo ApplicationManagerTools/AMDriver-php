@@ -1,0 +1,16 @@
+# Fragment à fusionner dans le docker-compose.yml de l'application gérée.
+# Prérequis : ./docker/swagger/am-driver/receptacle-v1.yaml (voir sync-openapi.sh).
+
+  swagger-ui-am-driver:
+    image: swaggerapi/swagger-ui:latest
+    restart: on-failure
+    environment:
+      PORT: 8080
+      SUPPORTED_SUBMIT_METHODS: "['post']"
+      SWAGGER_JSON: /spec/receptacle-v1.yaml
+    volumes:
+      - ./docker/swagger/am-driver:/spec:ro
+    ports:
+      - '${HOST_IP:-127.0.0.1}:${AM_DRIVER_SWAGGER_PORT:-11784}:8080'
+    networks:
+      - ${COMPOSE_PROJECT_NAME:-app}-network

@@ -112,7 +112,20 @@ En résumé pour un intégrateur **Captain Learning** :
 
 ---
 
-## 4. Poursuivre la lecture
+## 4. Swagger UI (interaction réelle avec le serveur)
+
+Le bundle fournit un **kit OpenAPI 3.1.1** pour tester les routes récepteur depuis le navigateur (Try it out), sur **n’importe quelle** application gérée :
+
+1. `vendor/application-manager-tools/am-driver/docs/openapi/kit/sync-openapi.sh` — copie la spec dans `docker/swagger/am-driver/`.
+2. Ajuster la section `servers` (URL = origine HTTP + `route_prefix` de `config/packages/am_driver.yaml`).
+3. Fusionner `kit/docker-compose.snippet.yml` → service `swagger-ui-am-driver` (port type `11784`).
+4. Renseigner les jetons dans **Authorize** (`AM_DRIVER_ORCHESTRATION_COMMAND_TOKEN`, etc.).
+
+Détail : [openapi/kit/README.md](./openapi/kit/README.md).
+
+---
+
+## 5. Poursuivre la lecture
 
 - [INTEGRATION.md](./INTEGRATION.md) — paramètres, routes, fichiers locaux, API PHP.
 - [INTEGRATION-SAME-APP.md](./INTEGRATION-SAME-APP.md) — cas AM et connecteur dans le **même** Symfony (dogfooding).

@@ -60,7 +60,9 @@ Les clés `orchestration_commands_path` et `operational_state_path` restent disp
 | `/am/orchestration/commands` | POST | `X-Orchestration-Command-Token` |
 | `/am/instance-operational-state` | POST | `X-Instance-Operational-State-Token` |
 
-Corps commande : `operation`, `targetId`, `appId`, `instanceId`, `tenantId`, `correlationId`, `idempotencyKey`, `occurredAt`.
+Contrat détaillé (OpenAPI 3.1.1) : [openapi/receptacle-v1.yaml](./openapi/receptacle-v1.yaml). Appels sortants : [openapi/am-client-v1.yaml](./openapi/am-client-v1.yaml). **Swagger UI (Try it out)** : [openapi/kit/README.md](./openapi/kit/README.md).
+
+Corps commande : `operation`, `appId`, `instanceId`, `tenantId`, `correlationId`, `idempotencyKey`, `occurredAt` (optionnel : `instanceIntegrationToken`).
 
 ## Fichiers locaux (par `tenantId`)
 

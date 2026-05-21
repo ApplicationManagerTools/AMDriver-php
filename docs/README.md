@@ -8,4 +8,6 @@ Upstream documents live in the Application Manager agents repository:
 - [spec-integration-application-instance-v1.md](https://github.com/logipro-fr/application-manager/blob/main/application-manager-agents/docs/specifications/spec-integration-application-instance-v1.md)
 - [spec-instance-operational-state-push-v1.md](https://github.com/logipro-fr/application-manager/blob/main/application-manager-agents/docs/specifications/spec-instance-operational-state-push-v1.md)
 
-OpenAPI (AM API): `POST /api/v1/orchestration/consumption-events`, `POST /api/v1/orchestration/commands/callbacks`.
+**OpenAPI 3.1.1** : [openapi/README.md](./openapi/README.md) — récepteur, client AM, [kit Swagger UI](./openapi/kit/README.md).
+
+OpenAPI plateforme (AM API) : `POST /api/v1/orchestration/consumption-events`, `POST /api/v1/orchestration/commands/callbacks` — voir `ApplicationManager/docker/swagger/v1/openapi.yaml`.

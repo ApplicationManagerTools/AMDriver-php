@@ -3,6 +3,7 @@
 Symfony bundle and framework-agnostic PHP library to integrate **managed applications** with [Application Manager](https://github.com/ApplicationManagerTools) (orchestration commands, consumption webhooks, operational state push).
 
 Specification: [cahier des charges connecteur AM](docs/README.md).  
+**OpenAPI 3.1.1** (récepteur + client AM + kit Swagger UI) : [docs/openapi/README.md](docs/openapi/README.md).  
 **Manuel d’intégration (intégrateurs humains)** : [docs/MANUEL-INTEGRATION-INTEGRATEURS.md](docs/MANUEL-INTEGRATION-INTEGRATEURS.md).  
 Intégration technique : [docs/INTEGRATION.md](docs/INTEGRATION.md). Même app Symfony qu’AM (dogfooding) : [docs/INTEGRATION-SAME-APP.md](docs/INTEGRATION-SAME-APP.md). Écarts AM : [docs/ECARTS-AM.md](docs/ECARTS-AM.md).
 
@@ -25,6 +26,12 @@ Comme le back ApplicationManager : `./bin/php` exécute PHP dans le conteneur Co
 ./bin/composer install
 ./bin/phpunit
 ./codecheck        # php-cs-fixer + phpstan + phpunit
+```
+
+Swagger UI (spec récepteur, port `AM_DRIVER_SWAGGER_PORT`, défaut `18098`) :
+
+```bash
+docker compose up -d swagger-ui
 ```
 
 Réceptacle HTTP (port hôte configurable via `RECEPTACLE_PORT` dans `.env`, défaut `18099`) :

@@ -17,6 +17,18 @@ services:
     networks:
       - am-driver-network
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    restart: on-failure
+    environment:
+      PORT: 8080
+      SUPPORTED_SUBMIT_METHODS: "['post']"
+      SWAGGER_JSON: /openapi/receptacle-v1.yaml
+    volumes:
+      - ./docs/openapi:/openapi:ro
+    ports:
+      - '${HOST_IP:-127.0.0.1}:${AM_DRIVER_SWAGGER_PORT:-18098}:8080'
+
 networks:
   am-driver-network:
     name: '${COMPOSE_PROJECT_NAME}-network'
