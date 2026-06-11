@@ -24,7 +24,7 @@ final class FileOperationalStateStore implements OperationalStateStoreInterface
     {
         AtomicFileWriter::write(
             $this->pathFor($instanceId),
-            json_encode($document, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)
+            json_encode($document, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
         );
     }
 

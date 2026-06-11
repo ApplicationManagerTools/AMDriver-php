@@ -32,7 +32,7 @@ final class ConsumptionWebhookEvent
         string $resourceKey,
         $value,
         string $occurredAt,
-        string $source,
+        string $source
     ) {
         $this->instanceId = $instanceId;
         $this->resourceKey = $resourceKey;
@@ -61,7 +61,7 @@ final class ConsumptionWebhookEvent
             (string) $data['resourceKey'],
             $data['value'],
             (string) $data['occurredAt'],
-            (string) $data['source']
+            (string) $data['source'],
         );
     }
 

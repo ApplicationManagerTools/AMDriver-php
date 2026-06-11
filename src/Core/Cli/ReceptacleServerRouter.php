@@ -38,7 +38,7 @@ final class ReceptacleServerRouter
             $_SERVER['REQUEST_METHOD'] ?? 'GET',
             $_SERVER['REQUEST_URI'] ?? '/',
             file_get_contents('php://input') ?: '',
-            $headers
+            $headers,
         );
 
         http_response_code($status);

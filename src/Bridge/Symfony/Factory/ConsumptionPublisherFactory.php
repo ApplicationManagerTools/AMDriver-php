@@ -16,7 +16,7 @@ final class ConsumptionPublisherFactory
     public static function create(
         AmApiClientInterface $amApiClient,
         ResourceSnapshotManager $snapshotManager,
-        array $config,
+        array $config
     ): ConsumptionPublisher {
         return new ConsumptionPublisher($amApiClient, $snapshotManager, (string) $config['source']);
     }

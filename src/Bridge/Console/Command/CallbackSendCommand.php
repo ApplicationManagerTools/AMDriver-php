@@ -43,13 +43,13 @@ final class CallbackSendCommand extends Command
         $client = new AmApiClient(HttpClient::create(), new AmApiClientConfig(
             (string) $input->getOption('am-url'),
             'unused-consumption-token',
-            (string) $input->getOption('token')
+            (string) $input->getOption('token'),
         ));
 
         $request = new OrchestrationCallbackRequest(
             (string) $input->getOption('idempotency-key'),
             CallbackStatus::fromString((string) $input->getOption('status')),
-            $input->getOption('message') ? (string) $input->getOption('message') : null
+            $input->getOption('message') ? (string) $input->getOption('message') : null,
         );
 
         $response = $client->reportOrchestrationCallback($request);

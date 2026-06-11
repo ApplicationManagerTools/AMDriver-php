@@ -25,7 +25,7 @@ final class ConsumptionPublisher
     public function __construct(
         AmApiClientInterface $amApiClient,
         ResourceSnapshotManager $snapshotManager,
-        string $source,
+        string $source
     ) {
         $this->amApiClient = $amApiClient;
         $this->snapshotManager = $snapshotManager;

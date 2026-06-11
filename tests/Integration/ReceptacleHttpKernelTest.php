@@ -73,17 +73,17 @@ final class ReceptacleHttpKernelTest extends TestCase
                 new LoggingStopInstanceHandler($log),
                 new LoggingStartInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
-                new NoopAmApiClient()
+                new NoopAmApiClient(),
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),
                 new FileOperationalStateReceiptStore($dataDir.'/operational-state-receipts'),
-                new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning'))
+                new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning')),
             ),
             ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
             ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
             'dev-command-token',
-            'dev-state-token'
+            'dev-state-token',
         );
     }
 }

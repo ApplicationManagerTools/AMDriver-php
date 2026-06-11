@@ -38,7 +38,7 @@ final class ManagedInstanceResourceSnapshot
         string $source,
         string $updatedAt,
         array $resources,
-        ?array $lastInboundOperationalState = null,
+        ?array $lastInboundOperationalState = null
     ) {
         $this->instanceId = $instanceId;
         $this->source = $source;
@@ -53,7 +53,7 @@ final class ManagedInstanceResourceSnapshot
             $instanceId,
             $source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
-            []
+            [],
         );
     }
 
@@ -84,7 +84,7 @@ final class ManagedInstanceResourceSnapshot
             (string) $data['source'],
             (string) $data['updatedAt'],
             $resources,
-            $last
+            $last,
         );
     }
 
@@ -140,7 +140,7 @@ final class ManagedInstanceResourceSnapshot
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $this->resources,
-            $this->lastInboundOperationalState
+            $this->lastInboundOperationalState,
         );
     }
 
@@ -154,7 +154,7 @@ final class ManagedInstanceResourceSnapshot
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $this->resources,
-            $lastInboundOperationalState
+            $lastInboundOperationalState,
         );
     }
 
@@ -190,7 +190,7 @@ final class ManagedInstanceResourceSnapshot
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $resources,
-            $this->lastInboundOperationalState
+            $this->lastInboundOperationalState,
         );
     }
 
@@ -218,7 +218,7 @@ final class ManagedInstanceResourceSnapshot
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $resources,
-            $this->lastInboundOperationalState
+            $this->lastInboundOperationalState,
         );
     }
 }

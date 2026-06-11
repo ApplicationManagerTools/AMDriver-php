@@ -37,7 +37,7 @@ final class OperationalStateProcessor
         OperationalStateReceiptStoreInterface $receiptStore,
         ?ResourceSnapshotManager $snapshotManager = null,
         ?OperationalStateReceiverInterface $receiver = null,
-        ?string $expectedInstanceId = null,
+        ?string $expectedInstanceId = null
     ) {
         $this->store = $store;
         $this->receiptStore = $receiptStore;
@@ -55,7 +55,7 @@ final class OperationalStateProcessor
     {
         InstanceOperationalStateValidator::validate(
             $document,
-            $this->expectedInstanceId
+            $this->expectedInstanceId,
         );
 
         $instanceId = (string) ($document['instance']['instanceId'] ?? '');

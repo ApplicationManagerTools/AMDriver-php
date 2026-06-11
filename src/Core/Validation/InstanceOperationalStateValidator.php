@@ -17,12 +17,12 @@ final class InstanceOperationalStateValidator
      */
     public static function validate(
         array $document,
-        ?string $expectedInstanceId = null,
+        ?string $expectedInstanceId = null
     ): void {
         JsonPayloadValidator::requireKeys($document, ['schemaVersion', 'kind', 'instance']);
         JsonPayloadValidator::assertSchemaVersion(
             (string) $document['schemaVersion'],
-            OperationalStateProcessor::SCHEMA_VERSION
+            OperationalStateProcessor::SCHEMA_VERSION,
         );
 
         if (OperationalStateProcessor::KIND !== (string) $document['kind']) {

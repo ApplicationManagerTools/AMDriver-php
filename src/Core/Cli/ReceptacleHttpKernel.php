@@ -40,7 +40,7 @@ final class ReceptacleHttpKernel
         string $orchestrationPath,
         string $operationalStatePath,
         string $orchestrationToken,
-        string $operationalStateToken,
+        string $operationalStateToken
     ) {
         $this->orchestrationProcessor = $orchestrationProcessor;
         $this->operationalStateProcessor = $operationalStateProcessor;

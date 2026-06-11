@@ -55,7 +55,7 @@ final class ConsumptionPushCommand extends Command
         $client = new AmApiClient(HttpClient::create(), new AmApiClientConfig(
             (string) $input->getOption('am-url'),
             (string) $input->getOption('token'),
-            'unused-callback-token'
+            'unused-callback-token',
         ));
 
         $event = new ConsumptionWebhookEvent(
@@ -63,7 +63,7 @@ final class ConsumptionPushCommand extends Command
             (string) $input->getOption('resource-key'),
             $value,
             (string) $occurredAt,
-            (string) $input->getOption('source')
+            (string) $input->getOption('source'),
         );
 
         $response = $client->pushConsumption($event);

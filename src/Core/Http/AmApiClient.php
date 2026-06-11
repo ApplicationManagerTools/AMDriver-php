@@ -45,7 +45,7 @@ final class AmApiClient implements AmApiClientInterface
                 'headers' => $this->callbackHeaders(),
                 'json' => $request->toArray(),
                 'timeout' => $this->config->timeoutSeconds(),
-            ]
+            ],
         );
     }
 

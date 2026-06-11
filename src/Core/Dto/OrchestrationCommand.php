@@ -37,7 +37,7 @@ final class OrchestrationCommand
         string $idempotencyKey,
         string $occurredAt,
         ?string $correlationId = null,
-        ?string $instanceIntegrationToken = null,
+        ?string $instanceIntegrationToken = null
     ) {
         $this->operation = $operation;
         $this->appId = $appId;

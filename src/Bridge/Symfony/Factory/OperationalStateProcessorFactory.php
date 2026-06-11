@@ -20,7 +20,7 @@ final class OperationalStateProcessorFactory
         OperationalStateReceiptStoreInterface $receiptStore,
         ?ResourceSnapshotManager $snapshotManager,
         ?OperationalStateReceiverInterface $receiver,
-        array $config,
+        array $config
     ): OperationalStateProcessor {
         $expectedInstance = $config['expected_instance_id'] ?? null;
 
@@ -29,7 +29,7 @@ final class OperationalStateProcessorFactory
             $receiptStore,
             $snapshotManager,
             $receiver,
-            \is_string($expectedInstance) && '' !== $expectedInstance ? $expectedInstance : null
+            \is_string($expectedInstance) && '' !== $expectedInstance ? $expectedInstance : null,
         );
     }
 }

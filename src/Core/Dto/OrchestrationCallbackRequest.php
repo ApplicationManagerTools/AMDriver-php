@@ -39,7 +39,7 @@ final class OrchestrationCallbackRequest
         return new self(
             (string) $data['idempotencyKey'],
             CallbackStatus::fromString((string) $data['status']),
-            $message
+            $message,
         );
     }
 

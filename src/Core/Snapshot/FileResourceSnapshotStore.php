@@ -50,7 +50,7 @@ final class FileResourceSnapshotStore implements ResourceSnapshotStoreInterface
     {
         AtomicFileWriter::write(
             $this->pathFor($snapshot->instanceId()),
-            json_encode($snapshot->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)
+            json_encode($snapshot->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
         );
     }
 

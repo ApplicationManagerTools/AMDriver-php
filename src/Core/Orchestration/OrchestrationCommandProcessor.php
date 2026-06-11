@@ -37,7 +37,7 @@ final class OrchestrationCommandProcessor
         StopInstanceHandlerInterface $stopHandler,
         StartInstanceHandlerInterface $startHandler,
         IdempotencyStoreInterface $idempotencyStore,
-        AmApiClientInterface $amApiClient,
+        AmApiClientInterface $amApiClient
     ) {
         $this->createHandler = $createHandler;
         $this->stopHandler = $stopHandler;
@@ -94,7 +94,7 @@ final class OrchestrationCommandProcessor
     private function reportCallback(OrchestrationCommand $command, CallbackStatus $status, ?string $message): void
     {
         $this->amApiClient->reportOrchestrationCallback(
-            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message)
+            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message),
         );
     }
 }

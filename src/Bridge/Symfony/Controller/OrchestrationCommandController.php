@@ -41,7 +41,7 @@ final class OrchestrationCommandController
 
             return new JsonResponse(
                 ['accepted' => true, 'alreadyProcessed' => $result['alreadyProcessed']],
-                $result['httpStatus']
+                $result['httpStatus'],
             );
         } catch (ValidationException $e) {
             return new JsonResponse(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
