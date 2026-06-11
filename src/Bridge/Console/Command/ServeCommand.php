@@ -63,7 +63,7 @@ final class ServeCommand extends Command
             $orchestrationPath,
             $host,
             $port,
-            $statePath
+            $statePath,
         ));
 
         $cmd = sprintf(
@@ -72,7 +72,7 @@ final class ServeCommand extends Command
             escapeshellarg($host),
             escapeshellarg($port),
             escapeshellarg($docRoot),
-            escapeshellarg($router)
+            escapeshellarg($router),
         );
 
         passthru($cmd, $exitCode);

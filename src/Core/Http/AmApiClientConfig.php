@@ -30,7 +30,7 @@ final class AmApiClientConfig
         string $orchestrationCallbackToken,
         float $timeoutSeconds = 10.0,
         int $consumptionMaxRetries = 3,
-        int $consumptionRetryDelayMs = 500,
+        int $consumptionRetryDelayMs = 500
     ) {
         $this->baseUrl = rtrim($baseUrl, '/');
         $this->consumptionWebhookToken = $consumptionWebhookToken;

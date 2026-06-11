@@ -20,31 +20,36 @@ final class FileOperationalStateStore implements OperationalStateStoreInterface
         }
     }
 
-    public function save(string $tenantId, array $document): void
+    public function save(string $instanceId, array $document): void
     {
         AtomicFileWriter::write(
-            $this->pathFor($tenantId),
-            json_encode($document, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT)
+            $this->pathFor($instanceId),
+            json_encode($document, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
         );
     }
 
-    public function load(string $tenantId): ?array
+    public function load(string $instanceId): ?array
     {
-        $path = $this->pathFor($tenantId);
+        $path = $this->pathFor($instanceId);
         if (!is_file($path)) {
             return null;
         }
+
         $json = file_get_contents($path);
         if (false === $json) {
-            throw new RuntimeException(sprintf('Cannot read operational state: %s', $path));
+            return null;
         }
 
-        /* @var array<string, mixed> */
-        return json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        if (!\is_array($decoded)) {
+            return null;
+        }
+
+        return $decoded;
     }
 
-    private function pathFor(string $tenantId): string
+    private function pathFor(string $instanceId): string
     {
-        return $this->directory.'/'.preg_replace('/[^a-zA-Z0-9._-]+/', '_', $tenantId).'-operational-state.json';
+        return $this->directory.'/'.preg_replace('/[^a-zA-Z0-9._-]+/', '_', $instanceId).'-operational-state.json';
     }
 }

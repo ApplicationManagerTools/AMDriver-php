@@ -40,17 +40,17 @@ final class ReceptacleBootstrapFactory
                 new LoggingStopInstanceHandler($log),
                 new LoggingStartInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
-                new NoopAmApiClient()
+                new NoopAmApiClient(),
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),
                 new FileOperationalStateReceiptStore($dataDir.'/operational-state-receipts'),
-                new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', $config['source']))
+                new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', $config['source'])),
             ),
             $config['orchestration_path'],
             $config['operational_state_path'],
             $config['token_command'],
-            $config['token_state']
+            $config['token_state'],
         );
     }
 

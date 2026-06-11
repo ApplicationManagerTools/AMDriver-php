@@ -25,16 +25,16 @@ final class ConsumptionPublisher
     public function __construct(
         AmApiClientInterface $amApiClient,
         ResourceSnapshotManager $snapshotManager,
-        string $source,
+        string $source
     ) {
         $this->amApiClient = $amApiClient;
         $this->snapshotManager = $snapshotManager;
         $this->source = $source;
     }
 
-    public function pushResourceConsumption(string $tenantId, string $resourceKey): int
+    public function pushResourceConsumption(string $instanceId, string $resourceKey): int
     {
-        $snapshot = $this->snapshotManager->getSnapshot($tenantId);
+        $snapshot = $this->snapshotManager->getSnapshot($instanceId);
         $value = null;
         $occurredAt = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM);
 
@@ -50,11 +50,11 @@ final class ConsumptionPublisher
             throw new InvalidArgumentException(sprintf('No measurement for resourceKey %s', $resourceKey));
         }
 
-        $event = new ConsumptionWebhookEvent($tenantId, $resourceKey, $value, $occurredAt, $this->source);
+        $event = new ConsumptionWebhookEvent($instanceId, $resourceKey, $value, $occurredAt, $this->source);
         $response = $this->amApiClient->pushConsumption($event);
 
         if (202 === $response['statusCode']) {
-            $this->snapshotManager->markPushedToAm($tenantId, $resourceKey, $value, $occurredAt, $response['statusCode']);
+            $this->snapshotManager->markPushedToAm($instanceId, $resourceKey, $value, $occurredAt, $response['statusCode']);
         }
 
         return $response['statusCode'];
@@ -63,10 +63,10 @@ final class ConsumptionPublisher
     /**
      * @return list<int> HTTP status codes per resource pushed
      */
-    public function flushPendingToAm(string $tenantId): array
+    public function flushPendingToAm(string $instanceId): array
     {
         $statuses = [];
-        foreach ($this->snapshotManager->getSnapshot($tenantId)->resources() as $resource) {
+        foreach ($this->snapshotManager->getSnapshot($instanceId)->resources() as $resource) {
             $resourceKey = (string) ($resource['resourceKey'] ?? '');
             if ('' === $resourceKey) {
                 continue;
@@ -79,7 +79,7 @@ final class ConsumptionPublisher
             if (\is_array($lastPushed) && ($lastPushed['value'] ?? null) == $localValue && !empty($lastPushed['accepted'])) {
                 continue;
             }
-            $statuses[] = $this->pushResourceConsumption($tenantId, $resourceKey);
+            $statuses[] = $this->pushResourceConsumption($instanceId, $resourceKey);
         }
 
         return $statuses;

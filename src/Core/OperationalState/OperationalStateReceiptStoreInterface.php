@@ -6,7 +6,7 @@ namespace ApplicationManagerTools\AmDriver\Core\OperationalState;
 
 interface OperationalStateReceiptStoreInterface
 {
-    public function isDuplicate(string $tenantId, string $correlationId, string $computedAt): bool;
+    public function isDuplicate(string $instanceId, string $correlationId, string $computedAt): bool;
 
-    public function remember(string $tenantId, string $correlationId, string $computedAt): void;
+    public function remember(string $instanceId, string $correlationId, string $computedAt): void;
 }

@@ -19,8 +19,8 @@ final class ConsumptionPublisherTest extends TestCase
         // Arrange
         $dir = sys_get_temp_dir().'/am-driver-pub-'.uniqid('', true);
         $manager = new ResourceSnapshotManager(new FileResourceSnapshotStore($dir, 'captain-learning'));
-        $tenantId = 'am_ten_10000000-0000-4000-8000-000000000001';
-        $manager->recordMeasurement($tenantId, 'seats', 9);
+        $instanceId = 'am_ins_10000000-0000-4000-8000-000000000001';
+        $manager->recordMeasurement($instanceId, 'seats', 9);
 
         $client = new class implements AmApiClientInterface {
             /** @var int */
@@ -40,12 +40,12 @@ final class ConsumptionPublisherTest extends TestCase
 
         // Act — 200 must not mark as pushed
         $client->statusCode = 200;
-        $publisher->pushResourceConsumption($tenantId, 'seats');
-        $after200 = $manager->getSnapshot($tenantId)->resources()[0]['lastPushedToAm'] ?? null;
+        $publisher->pushResourceConsumption($instanceId, 'seats');
+        $after200 = $manager->getSnapshot($instanceId)->resources()[0]['lastPushedToAm'] ?? null;
 
         $client->statusCode = 202;
-        $publisher->pushResourceConsumption($tenantId, 'seats');
-        $after202 = $manager->getSnapshot($tenantId)->resources()[0]['lastPushedToAm'] ?? null;
+        $publisher->pushResourceConsumption($instanceId, 'seats');
+        $after202 = $manager->getSnapshot($instanceId)->resources()[0]['lastPushedToAm'] ?? null;
 
         // Assert
         self::assertNull($after200);

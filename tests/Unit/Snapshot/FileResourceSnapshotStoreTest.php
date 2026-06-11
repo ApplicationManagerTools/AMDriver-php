@@ -9,39 +9,42 @@ use PHPUnit\Framework\TestCase;
 
 final class FileResourceSnapshotStoreTest extends TestCase
 {
-    private string $dataDir;
+    /** @var string */
+    private $directory;
 
     protected function setUp(): void
     {
-        $this->dataDir = sys_get_temp_dir().'/am-driver-snapshot-'.uniqid('', true);
+        $this->directory = sys_get_temp_dir().'/am-driver-snapshot-'.uniqid('', true);
     }
 
     protected function tearDown(): void
     {
-        $file = $this->dataDir.'/am_ten_test.json';
-        if (is_file($file)) {
-            unlink($file);
+        $files = glob($this->directory.'/*') ?: [];
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                unlink($file);
+            }
         }
-        if (is_dir($this->dataDir)) {
-            rmdir($this->dataDir);
+        if (is_dir($this->directory)) {
+            rmdir($this->directory);
         }
     }
 
-    public function testFindByTenantIdDelegatesToLoad(): void
+    public function testFindByInstanceIdDelegatesToLoad(): void
     {
         // Arrange
-        $store = new FileResourceSnapshotStore($this->dataDir, 'application-manager');
-        $tenantId = 'am_ten_test';
-        $snapshot = $store->getOrCreate($tenantId);
-        $store->save($snapshot->withResourceMeasurement('seats', 3, '2026-05-15T10:00:00+00:00'));
+        $store = new FileResourceSnapshotStore($this->directory, 'test-source');
+        $instanceId = 'am_ins_test';
+        $snapshot = $store->getOrCreate($instanceId);
+        $store->save($snapshot);
 
         // Act
-        $found = $store->findByTenantId($tenantId);
-        $missing = $store->findByTenantId('am_ten_unknown');
+        $found = $store->findByInstanceId($instanceId);
+        $missing = $store->findByInstanceId('am_ins_unknown');
 
         // Assert
         self::assertNotNull($found);
-        self::assertSame($tenantId, $found->tenantId());
         self::assertNull($missing);
+        self::assertSame($instanceId, $found->instanceId());
     }
 }

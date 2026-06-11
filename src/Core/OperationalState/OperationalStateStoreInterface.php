@@ -9,10 +9,10 @@ interface OperationalStateStoreInterface
     /**
      * @param array<string, mixed> $document
      */
-    public function save(string $tenantId, array $document): void;
+    public function save(string $instanceId, array $document): void;
 
     /**
      * @return array<string, mixed>|null
      */
-    public function load(string $tenantId): ?array;
+    public function load(string $instanceId): ?array;
 }

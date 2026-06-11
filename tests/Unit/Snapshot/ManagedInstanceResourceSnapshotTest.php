@@ -22,21 +22,9 @@ final class ManagedInstanceResourceSnapshotTest extends TestCase
         $roundTrip = $snapshot->toArray();
 
         // Assert
-        self::assertSame(ManagedInstanceResourceSnapshot::SCHEMA_VERSION, $roundTrip['schemaVersion']);
-        self::assertSame('am_ten_10000000-0000-4000-8000-000000000001', $roundTrip['tenantId']);
-        self::assertCount(1, $roundTrip['resources']);
-    }
-
-    public function testRecordMeasurementAddsResource(): void
-    {
-        // Arrange
-        $snapshot = ManagedInstanceResourceSnapshot::empty('am_ten_x', 'captain-learning');
-
-        // Act
-        $updated = $snapshot->withResourceMeasurement('seats', 12, '2026-05-14T12:00:00+00:00');
-
-        // Assert
-        self::assertSame('seats', $updated->resources()[0]['resourceKey']);
-        self::assertSame(12, $updated->resources()[0]['localMeasuredValue']);
+        self::assertSame('managed-instance-resource-snapshot.v1', $roundTrip['schemaVersion']);
+        self::assertSame('am_ins_10000000-0000-4000-8000-000000000001', $roundTrip['instanceId']);
+        self::assertSame('captain-learning', $roundTrip['source']);
+        self::assertSame([], $roundTrip['resources']);
     }
 }

@@ -19,7 +19,7 @@ final class AmApiClientConfigFactory
             (string) $config['orchestration_callback_token'],
             (float) $config['http_timeout'],
             (int) $config['consumption_max_retries'],
-            (int) $config['consumption_retry_delay_ms']
+            (int) $config['consumption_retry_delay_ms'],
         );
     }
 }

@@ -20,9 +20,8 @@ final class OperationalStateProcessorFactory
         OperationalStateReceiptStoreInterface $receiptStore,
         ?ResourceSnapshotManager $snapshotManager,
         ?OperationalStateReceiverInterface $receiver,
-        array $config,
+        array $config
     ): OperationalStateProcessor {
-        $expectedTenant = $config['expected_tenant_id'] ?? null;
         $expectedInstance = $config['expected_instance_id'] ?? null;
 
         return new OperationalStateProcessor(
@@ -30,8 +29,7 @@ final class OperationalStateProcessorFactory
             $receiptStore,
             $snapshotManager,
             $receiver,
-            \is_string($expectedTenant) && '' !== $expectedTenant ? $expectedTenant : null,
-            \is_string($expectedInstance) && '' !== $expectedInstance ? $expectedInstance : null
+            \is_string($expectedInstance) && '' !== $expectedInstance ? $expectedInstance : null,
         );
     }
 }

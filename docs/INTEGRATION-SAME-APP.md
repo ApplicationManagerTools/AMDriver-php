@@ -49,7 +49,7 @@ Le `OrchestrationCommandProcessor` du bundle envoie les callbacks AM après succ
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
 
 // service injecté par le bundle
-$snapshot = $store->findByTenantId($tenantId); // ou load()
+$snapshot = $store->findByInstanceId($instanceId); // ou load()
 ```
 
 ## Espace disque tenant (handlers STOP/START locaux)

@@ -10,7 +10,7 @@ use ApplicationManagerTools\AmDriver\Core\Validation\JsonPayloadValidator;
 final class ConsumptionWebhookEvent
 {
     /** @var string */
-    private $tenantId;
+    private $instanceId;
 
     /** @var string */
     private $resourceKey;
@@ -28,13 +28,13 @@ final class ConsumptionWebhookEvent
      * @param string|int|float $value
      */
     public function __construct(
-        string $tenantId,
+        string $instanceId,
         string $resourceKey,
         $value,
         string $occurredAt,
-        string $source,
+        string $source
     ) {
-        $this->tenantId = $tenantId;
+        $this->instanceId = $instanceId;
         $this->resourceKey = $resourceKey;
         $this->value = $value;
         $this->occurredAt = $occurredAt;
@@ -46,8 +46,8 @@ final class ConsumptionWebhookEvent
      */
     public static function fromArray(array $data): self
     {
-        JsonPayloadValidator::requireKeys($data, ['tenantId', 'resourceKey', 'value', 'occurredAt', 'source']);
-        JsonPayloadValidator::requireNonEmptyString($data, 'tenantId');
+        JsonPayloadValidator::requireKeys($data, ['instanceId', 'resourceKey', 'value', 'occurredAt', 'source']);
+        JsonPayloadValidator::requireNonEmptyString($data, 'instanceId');
         JsonPayloadValidator::requireNonEmptyString($data, 'resourceKey');
         JsonPayloadValidator::requireNonEmptyString($data, 'occurredAt');
         JsonPayloadValidator::requireNonEmptyString($data, 'source');
@@ -57,17 +57,17 @@ final class ConsumptionWebhookEvent
         }
 
         return new self(
-            (string) $data['tenantId'],
+            (string) $data['instanceId'],
             (string) $data['resourceKey'],
             $data['value'],
             (string) $data['occurredAt'],
-            (string) $data['source']
+            (string) $data['source'],
         );
     }
 
-    public function tenantId(): string
+    public function instanceId(): string
     {
-        return $this->tenantId;
+        return $this->instanceId;
     }
 
     public function resourceKey(): string
@@ -99,7 +99,7 @@ final class ConsumptionWebhookEvent
     public function toArray(): array
     {
         return [
-            'tenantId' => $this->tenantId,
+            'instanceId' => $this->instanceId,
             'resourceKey' => $this->resourceKey,
             'value' => $this->value,
             'occurredAt' => $this->occurredAt,

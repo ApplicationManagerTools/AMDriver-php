@@ -11,19 +11,18 @@ final class InstanceOperationalStateValidator
 {
     /**
      * Validation minimale alignée sur le document réellement poussé par AM
-     * (`BuildInstanceOperationalStateCommand`) — pas l’exemple long de la spec.
+     * (`BuildInstanceOperationalStateCommand`) — pas l'exemple long de la spec.
      *
      * @param array<string, mixed> $document
      */
     public static function validate(
         array $document,
-        ?string $expectedTenantId = null,
-        ?string $expectedInstanceId = null,
+        ?string $expectedInstanceId = null
     ): void {
         JsonPayloadValidator::requireKeys($document, ['schemaVersion', 'kind', 'instance']);
         JsonPayloadValidator::assertSchemaVersion(
             (string) $document['schemaVersion'],
-            OperationalStateProcessor::SCHEMA_VERSION
+            OperationalStateProcessor::SCHEMA_VERSION,
         );
 
         if (OperationalStateProcessor::KIND !== (string) $document['kind']) {
@@ -34,19 +33,9 @@ final class InstanceOperationalStateValidator
             throw new ValidationException('instance must be an object');
         }
 
-        JsonPayloadValidator::requireNonEmptyString($document['instance'], 'tenantId');
+        JsonPayloadValidator::requireNonEmptyString($document['instance'], 'instanceId');
 
-        if (null !== $expectedTenantId && $document['instance']['tenantId'] !== $expectedTenantId) {
-            throw new ValidationException('tenantId mismatch for this deployment');
-        }
-
-        if (
-            null !== $expectedInstanceId
-            && isset($document['instance']['instanceId'])
-            && \is_string($document['instance']['instanceId'])
-            && '' !== $document['instance']['instanceId']
-            && $document['instance']['instanceId'] !== $expectedInstanceId
-        ) {
+        if (null !== $expectedInstanceId && $document['instance']['instanceId'] !== $expectedInstanceId) {
             throw new ValidationException('instanceId mismatch for this deployment');
         }
     }

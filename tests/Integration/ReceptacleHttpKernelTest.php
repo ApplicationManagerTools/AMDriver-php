@@ -56,7 +56,7 @@ final class ReceptacleHttpKernelTest extends TestCase
         $statePath = ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
         [$status] = $kernel->handle('POST', $statePath, $body, $headers);
         $snapshotStore = new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning');
-        $snapshot = $snapshotStore->load('am_ten_30000000-0000-4000-8000-000000000001');
+        $snapshot = $snapshotStore->load('am_ins_30000000-0000-4000-8000-000000000001');
 
         // Assert
         self::assertSame(200, $status);
@@ -73,17 +73,17 @@ final class ReceptacleHttpKernelTest extends TestCase
                 new LoggingStopInstanceHandler($log),
                 new LoggingStartInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
-                new NoopAmApiClient()
+                new NoopAmApiClient(),
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),
                 new FileOperationalStateReceiptStore($dataDir.'/operational-state-receipts'),
-                new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning'))
+                new ResourceSnapshotManager(new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning')),
             ),
             ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
             ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
             'dev-command-token',
-            'dev-state-token'
+            'dev-state-token',
         );
     }
 }

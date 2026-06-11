@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace ApplicationManagerTools\AmDriver\Core\Tenant;
 
-use DateTimeImmutable;
-use DateTimeInterface;
+use ApplicationManagerTools\AmDriver\Core\Snapshot\AtomicFileWriter;
 use RuntimeException;
 
 /**
- * Espace disque optionnel par tenant côté application gérée (hors persistance métier hôte).
- * Utile pour handlers STOP/START locaux (ex. marqueur « suspendu ») sans coupler au produit AM.
+ * Espace disque optionnel par instance côté application gérée (hors persistance métier hôte).
  */
 final class FileTenantWorkspace
 {
     private const SUSPENDED_FLAG = 'suspended.flag';
-    private const INSTANCE_TOKEN_FILE = 'instance-integration-token.txt';
+    private const INSTANCE_TOKEN_FILE = 'instance-integration.token';
 
     /** @var string */
     private $tenantsBaseDirectory;
@@ -25,9 +23,9 @@ final class FileTenantWorkspace
         $this->tenantsBaseDirectory = rtrim($tenantsBaseDirectory, '/');
     }
 
-    public function ensureContext(string $tenantId): string
+    public function ensureContext(string $instanceId): string
     {
-        $dir = $this->directoryFor($tenantId);
+        $dir = $this->directoryFor($instanceId);
         if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
             throw new RuntimeException(sprintf('Cannot create tenant directory: %s', $dir));
         }
@@ -35,51 +33,45 @@ final class FileTenantWorkspace
         return $dir;
     }
 
-    public function markSuspended(string $tenantId): void
+    public function markSuspended(string $instanceId): void
     {
-        $dir = $this->ensureContext($tenantId);
-        $flag = $dir.'/'.self::SUSPENDED_FLAG;
-        if (false === file_put_contents($flag, (new DateTimeImmutable())->format(DateTimeInterface::ATOM))) {
-            throw new RuntimeException(sprintf('Cannot write %s', $flag));
+        $dir = $this->ensureContext($instanceId);
+        AtomicFileWriter::write($dir.'/'.self::SUSPENDED_FLAG, '');
+    }
+
+    public function clearSuspended(string $instanceId): void
+    {
+        $flag = $this->directoryFor($instanceId).'/'.self::SUSPENDED_FLAG;
+        if (is_file($flag)) {
+            unlink($flag);
         }
     }
 
-    public function clearSuspended(string $tenantId): void
+    public function isSuspended(string $instanceId): bool
     {
-        $flag = $this->directoryFor($tenantId).'/'.self::SUSPENDED_FLAG;
-        if (is_file($flag) && !unlink($flag)) {
-            throw new RuntimeException(sprintf('Cannot remove %s', $flag));
-        }
+        return is_file($this->directoryFor($instanceId).'/'.self::SUSPENDED_FLAG);
     }
 
-    public function isSuspended(string $tenantId): bool
+    public function storeInstanceIntegrationToken(string $instanceId, string $token): void
     {
-        return is_file($this->directoryFor($tenantId).'/'.self::SUSPENDED_FLAG);
+        $dir = $this->ensureContext($instanceId);
+        AtomicFileWriter::write($dir.'/'.self::INSTANCE_TOKEN_FILE, $token);
     }
 
-    public function storeInstanceIntegrationToken(string $tenantId, string $token): void
+    public function instanceIntegrationToken(string $instanceId): ?string
     {
-        $dir = $this->ensureContext($tenantId);
-        $path = $dir.'/'.self::INSTANCE_TOKEN_FILE;
-        if (false === file_put_contents($path, $token)) {
-            throw new RuntimeException(sprintf('Cannot write %s', $path));
-        }
-    }
-
-    public function instanceIntegrationToken(string $tenantId): ?string
-    {
-        $path = $this->directoryFor($tenantId).'/'.self::INSTANCE_TOKEN_FILE;
+        $path = $this->directoryFor($instanceId).'/'.self::INSTANCE_TOKEN_FILE;
         if (!is_file($path)) {
             return null;
         }
         $content = file_get_contents($path);
 
-        return \is_string($content) && '' !== trim($content) ? trim($content) : null;
+        return false === $content ? null : trim($content);
     }
 
-    private function directoryFor(string $tenantId): string
+    private function directoryFor(string $instanceId): string
     {
-        $safe = preg_replace('/[^a-zA-Z0-9._-]+/', '_', $tenantId) ?? $tenantId;
+        $safe = preg_replace('/[^a-zA-Z0-9._-]+/', '_', $instanceId) ?? $instanceId;
 
         return $this->tenantsBaseDirectory.'/'.$safe;
     }

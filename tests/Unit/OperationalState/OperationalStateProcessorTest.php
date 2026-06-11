@@ -28,7 +28,7 @@ final class OperationalStateProcessorTest extends TestCase
             new FileOperationalStateStore($dir.'/state'),
             new FileOperationalStateReceiptStore($dir.'/receipts'),
             null,
-            $receiver
+            $receiver,
         );
         $json = file_get_contents(dirname(__DIR__, 2).'/fixtures/instance-operational-state-am-minimal.json');
         self::assertNotFalse($json);
