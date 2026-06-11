@@ -83,7 +83,7 @@ Le bundle enregistre le tableau `am_driver.config` **et**, pour chaque clé de `
 $publisher->pushResourceConsumption($tenantId, 'seats');
 $publisher->flushPendingToAm($tenantId);
 $snapshotManager->recordMeasurement($tenantId, 'seats', 12);
-$stored = $resourceSnapshotStore->findByTenantId($tenantId); // lecture externe (alias de load)
+$stored = $resourceSnapshotStore->findByInstanceId($instanceId); // lecture externe (alias de load)
 ```
 
 ## Même application Symfony qu’Application Manager

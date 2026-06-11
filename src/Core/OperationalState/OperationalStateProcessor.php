@@ -30,9 +30,6 @@ final class OperationalStateProcessor
     private $receiver;
 
     /** @var string|null */
-    private $expectedTenantId;
-
-    /** @var string|null */
     private $expectedInstanceId;
 
     public function __construct(
@@ -40,14 +37,12 @@ final class OperationalStateProcessor
         OperationalStateReceiptStoreInterface $receiptStore,
         ?ResourceSnapshotManager $snapshotManager = null,
         ?OperationalStateReceiverInterface $receiver = null,
-        ?string $expectedTenantId = null,
         ?string $expectedInstanceId = null,
     ) {
         $this->store = $store;
         $this->receiptStore = $receiptStore;
         $this->snapshotManager = $snapshotManager;
         $this->receiver = $receiver;
-        $this->expectedTenantId = $expectedTenantId;
         $this->expectedInstanceId = $expectedInstanceId;
     }
 
@@ -60,24 +55,23 @@ final class OperationalStateProcessor
     {
         InstanceOperationalStateValidator::validate(
             $document,
-            $this->expectedTenantId,
             $this->expectedInstanceId
         );
 
-        $tenantId = (string) ($document['instance']['tenantId'] ?? '');
-        if ('' === $tenantId) {
-            throw new ValidationException('instance.tenantId is required');
+        $instanceId = (string) ($document['instance']['instanceId'] ?? '');
+        if ('' === $instanceId) {
+            throw new ValidationException('instance.instanceId is required');
         }
 
         $correlationId = (string) ($document['correlationId'] ?? '');
         $computedAt = (string) ($document['computedAt'] ?? '');
-        $duplicate = $this->receiptStore->isDuplicate($tenantId, $correlationId, $computedAt);
+        $duplicate = $this->receiptStore->isDuplicate($instanceId, $correlationId, $computedAt);
 
-        $this->store->save($tenantId, $document);
-        $this->receiptStore->remember($tenantId, $correlationId, $computedAt);
+        $this->store->save($instanceId, $document);
+        $this->receiptStore->remember($instanceId, $correlationId, $computedAt);
 
         if (null !== $this->snapshotManager) {
-            $this->snapshotManager->updateLastInboundOperationalState($tenantId, [
+            $this->snapshotManager->updateLastInboundOperationalState($instanceId, [
                 'schemaVersion' => self::SCHEMA_VERSION,
                 'correlationId' => $correlationId,
                 'computedAt' => $computedAt,

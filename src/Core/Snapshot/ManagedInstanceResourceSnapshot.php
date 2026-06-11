@@ -15,7 +15,7 @@ final class ManagedInstanceResourceSnapshot
     public const SCHEMA_VERSION = 'managed-instance-resource-snapshot.v1';
 
     /** @var string */
-    private $tenantId;
+    private $instanceId;
 
     /** @var string */
     private $source;
@@ -34,23 +34,23 @@ final class ManagedInstanceResourceSnapshot
      * @param array<string, mixed>|null  $lastInboundOperationalState
      */
     public function __construct(
-        string $tenantId,
+        string $instanceId,
         string $source,
         string $updatedAt,
         array $resources,
         ?array $lastInboundOperationalState = null,
     ) {
-        $this->tenantId = $tenantId;
+        $this->instanceId = $instanceId;
         $this->source = $source;
         $this->updatedAt = $updatedAt;
         $this->resources = $resources;
         $this->lastInboundOperationalState = $lastInboundOperationalState;
     }
 
-    public static function empty(string $tenantId, string $source): self
+    public static function empty(string $instanceId, string $source): self
     {
         return new self(
-            $tenantId,
+            $instanceId,
             $source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             []
@@ -62,7 +62,7 @@ final class ManagedInstanceResourceSnapshot
      */
     public static function fromArray(array $data): self
     {
-        JsonPayloadValidator::requireKeys($data, ['schemaVersion', 'tenantId', 'updatedAt', 'source', 'resources']);
+        JsonPayloadValidator::requireKeys($data, ['schemaVersion', 'instanceId', 'updatedAt', 'source', 'resources']);
         JsonPayloadValidator::assertSchemaVersion((string) $data['schemaVersion'], self::SCHEMA_VERSION);
         if (!\is_array($data['resources'])) {
             throw new ValidationException('resources must be an array');
@@ -80,7 +80,7 @@ final class ManagedInstanceResourceSnapshot
         $resources = array_values($data['resources']);
 
         return new self(
-            (string) $data['tenantId'],
+            (string) $data['instanceId'],
             (string) $data['source'],
             (string) $data['updatedAt'],
             $resources,
@@ -88,9 +88,9 @@ final class ManagedInstanceResourceSnapshot
         );
     }
 
-    public function tenantId(): string
+    public function instanceId(): string
     {
-        return $this->tenantId;
+        return $this->instanceId;
     }
 
     public function source(): string
@@ -121,7 +121,7 @@ final class ManagedInstanceResourceSnapshot
     {
         $data = [
             'schemaVersion' => self::SCHEMA_VERSION,
-            'tenantId' => $this->tenantId,
+            'instanceId' => $this->instanceId,
             'updatedAt' => $this->updatedAt,
             'source' => $this->source,
             'resources' => $this->resources,
@@ -136,7 +136,7 @@ final class ManagedInstanceResourceSnapshot
     public function withUpdatedAtNow(): self
     {
         return new self(
-            $this->tenantId,
+            $this->instanceId,
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $this->resources,
@@ -150,7 +150,7 @@ final class ManagedInstanceResourceSnapshot
     public function withLastInboundOperationalState(array $lastInboundOperationalState): self
     {
         return new self(
-            $this->tenantId,
+            $this->instanceId,
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $this->resources,
@@ -186,7 +186,7 @@ final class ManagedInstanceResourceSnapshot
         }
 
         return new self(
-            $this->tenantId,
+            $this->instanceId,
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $resources,
@@ -214,7 +214,7 @@ final class ManagedInstanceResourceSnapshot
         }
 
         return new self(
-            $this->tenantId,
+            $this->instanceId,
             $this->source,
             (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),
             $resources,

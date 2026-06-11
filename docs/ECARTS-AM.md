@@ -15,7 +15,8 @@ Alignement sur le **back AM réel** (`ApplicationManager/ApplicationManager/`) e
 | `DESTROY_INSTANCE` | Émis par AM | **Non implémenté** v1 : HTTP 400 + callback `FAILED` (message explicite) |
 | Route commandes | Une URL par `targetId` dans `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) | **Une route** POST routée par `operation` (variante cahier § 5) |
 | Paramètres Symfony `am_driver.config.<key>` | Requis par routes/services bundle | Enregistrés par `ConfigurationParameters` à l’activation du bundle |
-| Lecture snapshot externe | — | `ResourceSnapshotStoreInterface::findByTenantId()` (= `load()`) |
+| Lecture snapshot externe | — | `ResourceSnapshotStoreInterface::findByInstanceId()` (= `load()`) |
+| Clé de corrélation locale | `instanceId` (AM) | `instanceId` uniquement (plus de `tenantId` dans les DTO / snapshots v0.0.9+) |
 | Sonde route récepteur | — | `ConnectivityProbeInterface` + `HttpOrchestrationConnectivityProbe` (optionnel) |
 
 ## Politiques produit (à documenter par l’app hôte)

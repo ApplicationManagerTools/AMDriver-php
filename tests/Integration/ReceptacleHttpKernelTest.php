@@ -56,7 +56,7 @@ final class ReceptacleHttpKernelTest extends TestCase
         $statePath = ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
         [$status] = $kernel->handle('POST', $statePath, $body, $headers);
         $snapshotStore = new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning');
-        $snapshot = $snapshotStore->load('am_ten_30000000-0000-4000-8000-000000000001');
+        $snapshot = $snapshotStore->load('am_ins_30000000-0000-4000-8000-000000000001');
 
         // Assert
         self::assertSame(200, $status);

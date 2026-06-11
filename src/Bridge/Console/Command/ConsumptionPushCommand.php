@@ -24,7 +24,7 @@ final class ConsumptionPushCommand extends Command
         $this
             ->setName('consumption:push')
             ->setDescription('Push a consumption event to Application Manager')
-            ->addOption('tenant-id', null, InputOption::VALUE_REQUIRED, 'tenantId')
+            ->addOption('instance-id', null, InputOption::VALUE_REQUIRED, 'instanceId')
             ->addOption('resource-key', null, InputOption::VALUE_REQUIRED, 'resourceKey')
             ->addOption('value', null, InputOption::VALUE_REQUIRED, 'Measured value')
             ->addOption('source', null, InputOption::VALUE_REQUIRED, 'source', 'am-driver-cli')
@@ -36,7 +36,7 @@ final class ConsumptionPushCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        foreach (['tenant-id', 'resource-key', 'value', 'am-url', 'token'] as $required) {
+        foreach (['instance-id', 'resource-key', 'value', 'am-url', 'token'] as $required) {
             if (!$input->getOption($required)) {
                 $io->error(sprintf('Missing --%s', $required));
 
@@ -59,7 +59,7 @@ final class ConsumptionPushCommand extends Command
         ));
 
         $event = new ConsumptionWebhookEvent(
-            (string) $input->getOption('tenant-id'),
+            (string) $input->getOption('instance-id'),
             (string) $input->getOption('resource-key'),
             $value,
             (string) $occurredAt,

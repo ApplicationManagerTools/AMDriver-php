@@ -18,10 +18,7 @@ final class OrchestrationCommand
     /** @var string */
     private $instanceId;
 
-    /** @var string */
-    private $tenantId;
-
-    /** @var string */
+    /** @var string|null */
     private $correlationId;
 
     /** @var string */
@@ -37,16 +34,14 @@ final class OrchestrationCommand
         Operation $operation,
         string $appId,
         string $instanceId,
-        string $tenantId,
-        string $correlationId,
         string $idempotencyKey,
         string $occurredAt,
+        ?string $correlationId = null,
         ?string $instanceIntegrationToken = null,
     ) {
         $this->operation = $operation;
         $this->appId = $appId;
         $this->instanceId = $instanceId;
-        $this->tenantId = $tenantId;
         $this->correlationId = $correlationId;
         $this->idempotencyKey = $idempotencyKey;
         $this->occurredAt = $occurredAt;
@@ -60,10 +55,16 @@ final class OrchestrationCommand
     {
         JsonPayloadValidator::requireKeys(
             $data,
-            ['operation', 'appId', 'instanceId', 'tenantId', 'correlationId', 'idempotencyKey', 'occurredAt'],
+            ['operation', 'appId', 'instanceId', 'idempotencyKey', 'occurredAt'],
         );
-        foreach (['operation', 'appId', 'instanceId', 'tenantId', 'correlationId', 'idempotencyKey', 'occurredAt'] as $key) {
+        foreach (['operation', 'appId', 'instanceId', 'idempotencyKey', 'occurredAt'] as $key) {
             JsonPayloadValidator::requireNonEmptyString($data, $key);
+        }
+
+        $correlationId = null;
+        if (isset($data['correlationId']) && \is_string($data['correlationId'])) {
+            $trimmed = trim($data['correlationId']);
+            $correlationId = '' !== $trimmed ? $trimmed : null;
         }
 
         $instanceToken = null;
@@ -76,10 +77,9 @@ final class OrchestrationCommand
             Operation::fromString((string) $data['operation']),
             (string) $data['appId'],
             (string) $data['instanceId'],
-            (string) $data['tenantId'],
-            (string) $data['correlationId'],
             (string) $data['idempotencyKey'],
             (string) $data['occurredAt'],
+            $correlationId,
             $instanceToken,
         );
     }
@@ -99,12 +99,7 @@ final class OrchestrationCommand
         return $this->instanceId;
     }
 
-    public function tenantId(): string
-    {
-        return $this->tenantId;
-    }
-
-    public function correlationId(): string
+    public function correlationId(): ?string
     {
         return $this->correlationId;
     }
@@ -133,11 +128,12 @@ final class OrchestrationCommand
             'operation' => $this->operation->toString(),
             'appId' => $this->appId,
             'instanceId' => $this->instanceId,
-            'tenantId' => $this->tenantId,
-            'correlationId' => $this->correlationId,
             'idempotencyKey' => $this->idempotencyKey,
             'occurredAt' => $this->occurredAt,
         ];
+        if (null !== $this->correlationId) {
+            $payload['correlationId'] = $this->correlationId;
+        }
         if (null !== $this->instanceIntegrationToken) {
             $payload['instanceIntegrationToken'] = $this->instanceIntegrationToken;
         }

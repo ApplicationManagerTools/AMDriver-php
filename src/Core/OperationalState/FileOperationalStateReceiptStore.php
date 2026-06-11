@@ -20,13 +20,13 @@ final class FileOperationalStateReceiptStore implements OperationalStateReceiptS
         }
     }
 
-    public function isDuplicate(string $tenantId, string $correlationId, string $computedAt): bool
+    public function isDuplicate(string $instanceId, string $correlationId, string $computedAt): bool
     {
         if ('' === $correlationId && '' === $computedAt) {
             return false;
         }
 
-        $stored = $this->load($tenantId);
+        $stored = $this->load($instanceId);
         if (null === $stored) {
             return false;
         }
@@ -34,20 +34,20 @@ final class FileOperationalStateReceiptStore implements OperationalStateReceiptS
         return $stored['correlationId'] === $correlationId && $stored['computedAt'] === $computedAt;
     }
 
-    public function remember(string $tenantId, string $correlationId, string $computedAt): void
+    public function remember(string $instanceId, string $correlationId, string $computedAt): void
     {
-        AtomicFileWriter::write($this->pathFor($tenantId), json_encode([
+        AtomicFileWriter::write($this->pathFor($instanceId), json_encode([
             'correlationId' => $correlationId,
             'computedAt' => $computedAt,
-        ], JSON_THROW_ON_ERROR));
+        ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
     }
 
     /**
      * @return array{correlationId: string, computedAt: string}|null
      */
-    private function load(string $tenantId): ?array
+    private function load(string $instanceId): ?array
     {
-        $path = $this->pathFor($tenantId);
+        $path = $this->pathFor($instanceId);
         if (!is_file($path)) {
             return null;
         }
@@ -64,8 +64,8 @@ final class FileOperationalStateReceiptStore implements OperationalStateReceiptS
         ];
     }
 
-    private function pathFor(string $tenantId): string
+    private function pathFor(string $instanceId): string
     {
-        return $this->directory.'/'.preg_replace('/[^a-zA-Z0-9._-]+/', '_', $tenantId).'-receipt.json';
+        return $this->directory.'/'.preg_replace('/[^a-zA-Z0-9._-]+/', '_', $instanceId).'-receipt.json';
     }
 }

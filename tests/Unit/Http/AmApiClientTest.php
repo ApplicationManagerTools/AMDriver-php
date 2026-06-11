@@ -22,7 +22,7 @@ final class AmApiClientTest extends TestCase
 
         // Act
         $response = $api->pushConsumption(new ConsumptionWebhookEvent(
-            'am_ten_10000000-0000-4000-8000-000000000001',
+            'am_ins_10000000-0000-4000-8000-000000000001',
             'seats',
             '12',
             '2026-05-14T12:00:00+00:00',

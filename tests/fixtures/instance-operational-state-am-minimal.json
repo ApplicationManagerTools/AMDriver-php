@@ -9,7 +9,6 @@
   },
   "instance": {
     "instanceId": "am_ins_30000000-0000-4000-8000-000000000001",
-    "tenantId": "am_ten_30000000-0000-4000-8000-000000000001",
     "location": "https://captain-learning.example/"
   },
   "subscription": {

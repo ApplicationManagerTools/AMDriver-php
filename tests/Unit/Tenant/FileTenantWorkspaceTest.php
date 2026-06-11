@@ -9,7 +9,8 @@ use PHPUnit\Framework\TestCase;
 
 final class FileTenantWorkspaceTest extends TestCase
 {
-    private string $baseDir;
+    /** @var string */
+    private $baseDir;
 
     protected function setUp(): void
     {
@@ -18,49 +19,49 @@ final class FileTenantWorkspaceTest extends TestCase
 
     protected function tearDown(): void
     {
-        $tenantDir = $this->baseDir.'/tenant_a';
-        $flag = $tenantDir.'/suspended.flag';
+        $instanceDir = $this->baseDir.'/instance_a';
+        $flag = $instanceDir.'/suspended.flag';
         if (is_file($flag)) {
             unlink($flag);
         }
-        if (is_dir($tenantDir)) {
-            rmdir($tenantDir);
+        if (is_dir($instanceDir)) {
+            rmdir($instanceDir);
         }
         if (is_dir($this->baseDir)) {
             rmdir($this->baseDir);
         }
     }
 
-    public function testEnsureContextCreatesDirectoryForSanitizedTenantId(): void
+    public function testEnsureContextCreatesDirectoryForSanitizedInstanceId(): void
     {
         // Arrange
         $workspace = new FileTenantWorkspace($this->baseDir);
-        $tenantId = 'tenant/a';
+        $instanceId = 'instance/a';
 
         // Act
-        $path = $workspace->ensureContext($tenantId);
+        $path = $workspace->ensureContext($instanceId);
 
         // Assert
         self::assertDirectoryExists($path);
-        self::assertStringEndsWith('/tenant_a', $path);
+        self::assertStringEndsWith('/instance_a', $path);
     }
 
-    public function testSuspendedFlagLifecycle(): void
+    public function testSuspendAndClearFlags(): void
     {
         // Arrange
         $workspace = new FileTenantWorkspace($this->baseDir);
-        $tenantId = 'tenant_a';
+        $instanceId = 'instance_a';
 
         // Act
-        $workspace->markSuspended($tenantId);
+        $workspace->markSuspended($instanceId);
 
         // Assert
-        self::assertTrue($workspace->isSuspended($tenantId));
+        self::assertTrue($workspace->isSuspended($instanceId));
 
         // Act
-        $workspace->clearSuspended($tenantId);
+        $workspace->clearSuspended($instanceId);
 
         // Assert
-        self::assertFalse($workspace->isSuspended($tenantId));
+        self::assertFalse($workspace->isSuspended($instanceId));
     }
 }

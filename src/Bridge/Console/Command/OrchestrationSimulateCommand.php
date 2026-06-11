@@ -26,7 +26,6 @@ class OrchestrationSimulateCommand extends Command
             ->addOption('base-url', null, InputOption::VALUE_REQUIRED, 'Receptacle base URL', 'http://127.0.0.1:8099')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Command path', '/internal/am/orchestration/commands')
             ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-Orchestration-Command-Token', 'dev-command-token')
-            ->addOption('tenant-id', null, InputOption::VALUE_REQUIRED, 'tenantId', 'am_ten_10000000-0000-4000-8000-000000000001')
             ->addOption('instance-id', null, InputOption::VALUE_REQUIRED, 'instanceId', 'am_ins_10000000-0000-4000-8000-000000000001')
             ->addOption('app-id', null, InputOption::VALUE_REQUIRED, 'appId', 'am_app_10000000-0000-4000-8000-000000000001')
             ->addOption('target-id', null, InputOption::VALUE_REQUIRED, 'targetId', 'local-receptacle');
@@ -54,7 +53,6 @@ class OrchestrationSimulateCommand extends Command
             'targetId' => (string) $input->getOption('target-id'),
             'appId' => (string) $input->getOption('app-id'),
             'instanceId' => $instanceId,
-            'tenantId' => (string) $input->getOption('tenant-id'),
             'correlationId' => 'cli_'.bin2hex(random_bytes(8)),
             'idempotencyKey' => $instanceId.':'.strtolower($operationKey).'_instance:v1',
             'occurredAt' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(DateTimeInterface::ATOM),

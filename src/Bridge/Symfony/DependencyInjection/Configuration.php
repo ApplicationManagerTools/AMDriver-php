@@ -40,7 +40,6 @@ final class Configuration implements ConfigurationInterface
                     ->defaultNull()
                     ->info('Override full path; default is derived from route_prefix.')
                 ->end()
-                ->scalarNode('expected_tenant_id')->defaultNull()->end()
                 ->scalarNode('expected_instance_id')->defaultNull()->end()
             ->end();
 

@@ -23,21 +23,23 @@ final class FileResourceSnapshotStore implements ResourceSnapshotStoreInterface
         }
     }
 
-    public function findByTenantId(string $tenantId): ?ManagedInstanceResourceSnapshot
+    public function findByInstanceId(string $instanceId): ?ManagedInstanceResourceSnapshot
     {
-        return $this->load($tenantId);
+        return $this->load($instanceId);
     }
 
-    public function load(string $tenantId): ?ManagedInstanceResourceSnapshot
+    public function load(string $instanceId): ?ManagedInstanceResourceSnapshot
     {
-        $path = $this->pathFor($tenantId);
+        $path = $this->pathFor($instanceId);
         if (!is_file($path)) {
             return null;
         }
+
         $json = file_get_contents($path);
         if (false === $json) {
-            throw new RuntimeException(sprintf('Cannot read snapshot: %s', $path));
+            return null;
         }
+
         /** @var array<string, mixed> $data */
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
@@ -47,20 +49,20 @@ final class FileResourceSnapshotStore implements ResourceSnapshotStoreInterface
     public function save(ManagedInstanceResourceSnapshot $snapshot): void
     {
         AtomicFileWriter::write(
-            $this->pathFor($snapshot->tenantId()),
-            json_encode($snapshot->toArray(), JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT)
+            $this->pathFor($snapshot->instanceId()),
+            json_encode($snapshot->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES)
         );
     }
 
-    public function getOrCreate(string $tenantId): ManagedInstanceResourceSnapshot
+    public function getOrCreate(string $instanceId): ManagedInstanceResourceSnapshot
     {
-        $existing = $this->load($tenantId);
+        $existing = $this->load($instanceId);
 
-        return $existing ?? ManagedInstanceResourceSnapshot::empty($tenantId, $this->source);
+        return $existing ?? ManagedInstanceResourceSnapshot::empty($instanceId, $this->source);
     }
 
-    private function pathFor(string $tenantId): string
+    private function pathFor(string $instanceId): string
     {
-        return $this->directory.'/'.preg_replace('/[^a-zA-Z0-9._-]+/', '_', $tenantId).'.json';
+        return $this->directory.'/'.preg_replace('/[^a-zA-Z0-9._-]+/', '_', $instanceId).'.json';
     }
 }
