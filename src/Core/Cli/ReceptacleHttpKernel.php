@@ -59,12 +59,14 @@ final class ReceptacleHttpKernel
     {
         $path = parse_url($uri, PHP_URL_PATH) ?: '/';
 
-        if ('POST' === $method && $path === $this->orchestrationPath) {
-            return $this->handleOrchestration($body, $headers);
-        }
+        if ('POST' === $method) {
+            if ($path === $this->orchestrationPath) {
+                return $this->handleOrchestration($body, $headers);
+            }
 
-        if ('POST' === $method && $path === $this->operationalStatePath) {
-            return $this->handleOperationalState($body, $headers);
+            if ($path === $this->operationalStatePath) {
+                return $this->handleOperationalState($body, $headers);
+            }
         }
 
         if ('GET' === $method && '/' === $path) {

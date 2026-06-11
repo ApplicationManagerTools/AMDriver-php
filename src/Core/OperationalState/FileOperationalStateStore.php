@@ -40,8 +40,12 @@ final class FileOperationalStateStore implements OperationalStateStoreInterface
             return null;
         }
 
-        /** @var array<string, mixed> $data */
-        return json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        $decoded = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        if (!\is_array($decoded)) {
+            return null;
+        }
+
+        return $decoded;
     }
 
     private function pathFor(string $instanceId): string
