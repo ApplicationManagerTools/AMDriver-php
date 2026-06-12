@@ -1,0 +1,13 @@
+{
+  "operation": "CREATE_INSTANCE",
+  "appId": "am_app_10000000-0000-4000-8000-000000000001",
+  "instanceId": "am_ins_10000000-0000-4000-8000-000000000001",
+  "correlationId": "corr_test_001",
+  "idempotencyKey": "am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1",
+  "occurredAt": "2026-05-14T15:35:00+00:00",
+  "name": "UtilisateurSouhaite",
+  "credentials": {
+    "login": "client@example.com"
+  },
+  "metadata": {}
+}
