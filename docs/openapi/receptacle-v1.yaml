@@ -331,6 +331,22 @@ components:
           description: >
             Jeton d’intégration instance (optionnel, présent sur `CREATE_INSTANCE` sortant AM).
             Non vide si fourni.
+        name:
+          type: string
+          description: >
+            Nom public / display du tenant (billing Stripe). Uniquement sur `CREATE_INSTANCE`.
+        credentials:
+          type: object
+          description: >
+            Identifiants initiaux (ex. email admin). Uniquement sur `CREATE_INSTANCE`.
+          properties:
+            login:
+              type: string
+              format: email
+        metadata:
+          type: object
+          description: >
+            Métadonnées libres. Uniquement sur `CREATE_INSTANCE` ; souvent `{}`.
 
     InstanceOperationalState:
       type: object

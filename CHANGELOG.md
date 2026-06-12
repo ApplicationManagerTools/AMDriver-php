@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.0.10 — 2026-06-11
+
+### Added
+
+- **`OrchestrationCommand`** : champs enrichis optionnels pour `CREATE_INSTANCE` uniquement :
+  - `name` (getter `name()`)
+  - `credentials.login` (getter `credentialsLogin()`)
+  - `metadata` (getter `metadata()`, défaut `[]`)
+- Validation : `name`, `credentials`, `metadata` interdits hors `CREATE_INSTANCE` ; clé legacy `shortname` rejetée.
+
 ## 0.0.9 — 2026-06-11
 
 ### Breaking changes
