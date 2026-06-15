@@ -7,6 +7,7 @@ namespace ApplicationManagerTools\AmDriver\Core\Orchestration;
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCallbackRequest;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
 use ApplicationManagerTools\AmDriver\Core\Exception\HandlerFailedException;
@@ -55,9 +56,10 @@ final class OrchestrationCommandProcessor
             return ['httpStatus' => 200, 'alreadyProcessed' => true];
         }
 
+        $createResult = null;
         try {
             if ($command->operation()->isCreate()) {
-                $this->createHandler->handle($command);
+                $createResult = $this->createHandler->handle($command);
             } elseif ($command->operation()->isStop()) {
                 $this->stopHandler->handle($command);
             } elseif ($command->operation()->isStart()) {
@@ -86,15 +88,24 @@ final class OrchestrationCommandProcessor
         }
 
         $this->idempotencyStore->remember($command->idempotencyKey());
-        $this->reportCallback($command, CallbackStatus::succeeded(), null);
+        $this->reportCallback(
+            $command,
+            CallbackStatus::succeeded(),
+            null,
+            $createResult instanceof CreateInstanceHandlerResult ? $createResult->instanceLocation() : null,
+        );
 
         return ['httpStatus' => 200, 'alreadyProcessed' => false];
     }
 
-    private function reportCallback(OrchestrationCommand $command, CallbackStatus $status, ?string $message): void
-    {
+    private function reportCallback(
+        OrchestrationCommand $command,
+        CallbackStatus $status,
+        ?string $message,
+        ?string $location = null
+    ): void {
         $this->amApiClient->reportOrchestrationCallback(
-            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message),
+            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message, $location),
         );
     }
 }

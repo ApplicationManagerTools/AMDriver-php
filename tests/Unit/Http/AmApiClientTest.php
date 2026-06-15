@@ -54,6 +54,28 @@ final class AmApiClientTest extends TestCase
         self::assertSame('secret-cb', $this->headerValue($recording->options, 'X-Orchestration-Callback-Token'));
     }
 
+    public function testReportCallbackSerializesLocationInJsonBody(): void
+    {
+        // Arrange
+        $recording = new RecordingHttpClient();
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-cons', 'secret-cb'));
+
+        // Act
+        $api->reportOrchestrationCallback(new OrchestrationCallbackRequest(
+            'idem-key',
+            CallbackStatus::succeeded(),
+            null,
+            'https://tenant.example/login',
+        ));
+
+        // Assert
+        $body = $recording->options['body'] ?? null;
+        self::assertIsString($body);
+        /** @var array<string, mixed> $json */
+        $json = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('https://tenant.example/login', $json['location'] ?? null);
+    }
+
     /**
      * @param array<string, mixed> $options
      */
