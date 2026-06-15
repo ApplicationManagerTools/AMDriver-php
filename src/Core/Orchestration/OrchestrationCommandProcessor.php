@@ -102,7 +102,7 @@ final class OrchestrationCommandProcessor
         OrchestrationCommand $command,
         CallbackStatus $status,
         ?string $message,
-        ?string $location = null,
+        ?string $location = null
     ): void {
         $this->amApiClient->reportOrchestrationCallback(
             new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message, $location),
