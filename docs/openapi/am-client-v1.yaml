@@ -108,6 +108,7 @@ paths:
                 value:
                   idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
                   status: SUCCEEDED
+                  location: https://tenant.example/login
               failed:
                 value:
                   idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
@@ -178,3 +179,8 @@ components:
         message:
           type: string
           description: Détail d’échec (optionnel).
+        location:
+          type: string
+          format: uri
+          nullable: true
+          description: URL d'accès tenant (CREATE_INSTANCE SUCCEEDED).

@@ -26,7 +26,8 @@ final class CallbackSendCommand extends Command
             ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-Orchestration-Callback-Token')
             ->addOption('idempotency-key', null, InputOption::VALUE_REQUIRED, 'idempotencyKey')
             ->addOption('status', null, InputOption::VALUE_REQUIRED, 'SUCCEEDED|FAILED|RETRYABLE_FAILURE', 'SUCCEEDED')
-            ->addOption('message', null, InputOption::VALUE_OPTIONAL, 'Optional message');
+            ->addOption('message', null, InputOption::VALUE_OPTIONAL, 'Optional message')
+            ->addOption('location', null, InputOption::VALUE_OPTIONAL, 'Optional tenant access URL (CREATE_INSTANCE SUCCEEDED)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -50,6 +51,7 @@ final class CallbackSendCommand extends Command
             (string) $input->getOption('idempotency-key'),
             CallbackStatus::fromString((string) $input->getOption('status')),
             $input->getOption('message') ? (string) $input->getOption('message') : null,
+            $input->getOption('location') ? (string) $input->getOption('location') : null,
         );
 
         $response = $client->reportOrchestrationCallback($request);

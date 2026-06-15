@@ -78,13 +78,15 @@ am_driver:
 
 ```php
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
 
 final class MyCreateInstanceHandler implements CreateInstanceHandlerInterface
 {
-    public function handle(OrchestrationCommand $command): void
+    public function handle(OrchestrationCommand $command): CreateInstanceHandlerResult
     {
         // provision tenant / DB / storage
+        return new CreateInstanceHandlerResult('https://tenant.example/login');
     }
 }
 ```
