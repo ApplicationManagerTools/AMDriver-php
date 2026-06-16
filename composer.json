@@ -2,7 +2,7 @@
     "name": "application-manager-tools/am-driver",
     "description": "Symfony bundle and framework-agnostic core to integrate managed applications with Application Manager (orchestration, consumption, operational state).",
     "type": "symfony-bundle",
-    "version": "0.0.10",
+    "version": "0.0.11",
     "license": "MIT",
     "keywords": ["application-manager", "orchestration", "symfony-bundle"],
     "require": {
