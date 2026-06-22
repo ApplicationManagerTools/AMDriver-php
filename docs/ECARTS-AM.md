@@ -24,6 +24,8 @@ Alignement sur le **back AM réel** (`ApplicationManager/ApplicationManager/`) e
 | Situation | Défaut bundle | Callback |
 |-----------|---------------|----------|
 | `idempotencyKey` déjà traitée | HTTP 200, pas de rappel handler, **pas** de second callback | — |
+| `CREATE_INSTANCE` en cours (`deferred`) | HTTP 200, `alreadyProcessed: true`, pas de second dispatch | — |
+| `CREATE_INSTANCE` `deferred` | HTTP 200 immédiat ; callback après `executeCreateInstance()` | `SUCCEEDED` + `location` |
 | `START_INSTANCE` instance déjà active | Délégué au handler ; lever `HandlerFailedException` ou succès idempotent | Selon handler |
 | Instance inconnue | `HandlerFailedException::failed()` ou `ValidationException` | `FAILED` |
 | Erreur transitoire | Exception non métier → `RETRYABLE_FAILURE` | puis `FAILED` côté AM si épuisement |

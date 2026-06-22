@@ -12,10 +12,12 @@ use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStopInstanceHandle
 use ApplicationManagerTools\AmDriver\Core\Cli\ReceptacleHttpKernel;
 use ApplicationManagerTools\AmDriver\Core\Http\NoopAmApiClient;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore;
+use ApplicationManagerTools\AmDriver\Core\Idempotency\FileOrchestrationCommandLifecycleStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor;
+use ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager;
 use PHPUnit\Framework\TestCase;
@@ -74,6 +76,8 @@ final class ReceptacleHttpKernelTest extends TestCase
                 new LoggingStartInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
                 new NoopAmApiClient(),
+                new FileOrchestrationCommandLifecycleStore($dataDir.'/idempotency-in-progress'),
+                new UnconfiguredDeferredCreateInstanceDispatcher(),
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),

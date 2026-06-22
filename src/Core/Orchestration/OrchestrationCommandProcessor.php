@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ApplicationManagerTools\AmDriver\Core\Orchestration;
 
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
@@ -14,10 +15,14 @@ use ApplicationManagerTools\AmDriver\Core\Exception\HandlerFailedException;
 use ApplicationManagerTools\AmDriver\Core\Exception\ValidationException;
 use ApplicationManagerTools\AmDriver\Core\Http\AmApiClientInterface;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\IdempotencyStoreInterface;
+use ApplicationManagerTools\AmDriver\Core\Idempotency\OrchestrationCommandLifecycleStoreInterface;
 use Throwable;
 
 final class OrchestrationCommandProcessor
 {
+    public const CREATE_INSTANCE_EXECUTION_SYNC = 'sync';
+    public const CREATE_INSTANCE_EXECUTION_DEFERRED = 'deferred';
+
     /** @var CreateInstanceHandlerInterface */
     private $createHandler;
 
@@ -30,21 +35,36 @@ final class OrchestrationCommandProcessor
     /** @var IdempotencyStoreInterface */
     private $idempotencyStore;
 
+    /** @var OrchestrationCommandLifecycleStoreInterface */
+    private $lifecycleStore;
+
     /** @var AmApiClientInterface */
     private $amApiClient;
+
+    /** @var DeferredCreateInstanceDispatcherInterface */
+    private $deferredDispatcher;
+
+    /** @var string */
+    private $createInstanceExecution;
 
     public function __construct(
         CreateInstanceHandlerInterface $createHandler,
         StopInstanceHandlerInterface $stopHandler,
         StartInstanceHandlerInterface $startHandler,
         IdempotencyStoreInterface $idempotencyStore,
-        AmApiClientInterface $amApiClient
+        AmApiClientInterface $amApiClient,
+        OrchestrationCommandLifecycleStoreInterface $lifecycleStore,
+        DeferredCreateInstanceDispatcherInterface $deferredDispatcher,
+        string $createInstanceExecution = self::CREATE_INSTANCE_EXECUTION_SYNC
     ) {
         $this->createHandler = $createHandler;
         $this->stopHandler = $stopHandler;
         $this->startHandler = $startHandler;
         $this->idempotencyStore = $idempotencyStore;
         $this->amApiClient = $amApiClient;
+        $this->lifecycleStore = $lifecycleStore;
+        $this->deferredDispatcher = $deferredDispatcher;
+        $this->createInstanceExecution = $createInstanceExecution;
     }
 
     /**
@@ -54,6 +74,10 @@ final class OrchestrationCommandProcessor
     {
         if ($this->idempotencyStore->has($command->idempotencyKey())) {
             return ['httpStatus' => 200, 'alreadyProcessed' => true];
+        }
+
+        if ($command->operation()->isCreate() && self::CREATE_INSTANCE_EXECUTION_DEFERRED === $this->createInstanceExecution) {
+            return $this->acceptCreateInstanceDeferred($command);
         }
 
         $createResult = null;
@@ -94,6 +118,56 @@ final class OrchestrationCommandProcessor
             null,
             $createResult instanceof CreateInstanceHandlerResult ? $createResult->instanceLocation() : null,
         );
+
+        return ['httpStatus' => 200, 'alreadyProcessed' => false];
+    }
+
+    public function executeCreateInstance(OrchestrationCommand $command): void
+    {
+        try {
+            $createResult = $this->createHandler->handle($command);
+            $this->idempotencyStore->remember($command->idempotencyKey());
+            $this->reportCallback(
+                $command,
+                CallbackStatus::succeeded(),
+                null,
+                $createResult->instanceLocation(),
+            );
+        } catch (HandlerFailedException $e) {
+            $this->reportCallback($command, $e->callbackStatus(), $e->getMessage());
+            throw $e;
+        } catch (ValidationException $e) {
+            $this->reportCallback($command, CallbackStatus::failed(), $e->getMessage());
+            throw $e;
+        } catch (Throwable $e) {
+            $this->reportCallback($command, CallbackStatus::retryableFailure(), $e->getMessage());
+            throw $e;
+        } finally {
+            $this->lifecycleStore->clearInProgress($command->idempotencyKey());
+        }
+    }
+
+    /**
+     * @return array{httpStatus: int, alreadyProcessed: bool}
+     */
+    private function acceptCreateInstanceDeferred(OrchestrationCommand $command): array
+    {
+        if (null === $command->name() || null === $command->credentialsLogin()) {
+            $this->reportCallback(
+                $command,
+                CallbackStatus::failed(),
+                'CREATE_INSTANCE requires name and credentials.login',
+            );
+
+            return ['httpStatus' => 400, 'alreadyProcessed' => false];
+        }
+
+        if ($this->lifecycleStore->isInProgress($command->idempotencyKey())) {
+            return ['httpStatus' => 200, 'alreadyProcessed' => true];
+        }
+
+        $this->lifecycleStore->markInProgress($command->idempotencyKey());
+        $this->deferredDispatcher->dispatch($command);
 
         return ['httpStatus' => 200, 'alreadyProcessed' => false];
     }
