@@ -348,7 +348,23 @@ components:
         metadata:
           type: object
           description: >
-            Métadonnées libres. Uniquement sur `CREATE_INSTANCE` ; souvent `{}`.
+            Métadonnées libres. Uniquement sur `CREATE_INSTANCE`.
+            Sur le chemin billing AM, clés recommandées : `subscriptionId` (Stripe `sub_…`),
+            `formulaId` (`am_sfm_…`), `formulaName`.
+          additionalProperties: true
+          properties:
+            subscriptionId:
+              type: string
+              description: Identifiant d'abonnement Stripe externe (`sub_…`).
+              example: sub_1Q2w3e4r5t6y7u8i9o0p
+            formulaId:
+              type: string
+              description: Identifiant formule catalogue AM (`am_sfm_<uuid-v4>`).
+              example: am_sfm_10000000-0000-4000-8000-000000000001
+            formulaName:
+              type: string
+              description: Nom de la formule au moment de la souscription.
+              example: Pro
 
     InstanceOperationalState:
       type: object
