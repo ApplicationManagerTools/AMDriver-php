@@ -39,7 +39,7 @@ final class ExecuteDeferredCreateInstanceCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $commandFile = $input->getOption('command-file');
-        if (!\is_string($commandFile) || trim($commandFile) === '') {
+        if (!\is_string($commandFile) || '' === trim($commandFile)) {
             $io->error('Missing --command-file');
 
             return Command::FAILURE;
@@ -52,7 +52,7 @@ final class ExecuteDeferredCreateInstanceCommand extends Command
         }
 
         $raw = file_get_contents($commandFile);
-        if ($raw === false) {
+        if (false === $raw) {
             $io->error(sprintf('Cannot read command file: %s', $commandFile));
 
             return Command::FAILURE;
@@ -71,9 +71,7 @@ final class ExecuteDeferredCreateInstanceCommand extends Command
 
             return Command::FAILURE;
         } finally {
-            if (is_file($commandFile)) {
-                unlink($commandFile);
-            }
+            unlink($commandFile);
         }
 
         return Command::SUCCESS;

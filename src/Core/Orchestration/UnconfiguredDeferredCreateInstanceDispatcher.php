@@ -12,8 +12,6 @@ final class UnconfiguredDeferredCreateInstanceDispatcher implements DeferredCrea
 {
     public function dispatch(OrchestrationCommand $command): void
     {
-        throw new RuntimeException(
-            'create_instance_execution is "deferred" but no DeferredCreateInstanceDispatcherInterface implementation is registered.',
-        );
+        throw new RuntimeException('create_instance_execution is "deferred" but no DeferredCreateInstanceDispatcherInterface implementation is registered.');
     }
 }

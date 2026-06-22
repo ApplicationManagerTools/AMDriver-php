@@ -152,7 +152,7 @@ final class OrchestrationCommandProcessor
      */
     private function acceptCreateInstanceDeferred(OrchestrationCommand $command): array
     {
-        if ($command->name() === null || $command->credentialsLogin() === null) {
+        if (null === $command->name() || null === $command->credentialsLogin()) {
             $this->reportCallback(
                 $command,
                 CallbackStatus::failed(),

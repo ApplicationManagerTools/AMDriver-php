@@ -24,7 +24,7 @@ final class FileOrchestrationCommandLifecycleStoreTest extends TestCase
         $files = scandir($this->dir);
         if (\is_array($files)) {
             foreach ($files as $file) {
-                if ($file === '.' || $file === '..') {
+                if ('.' === $file || '..' === $file) {
                     continue;
                 }
                 unlink($this->dir.'/'.$file);

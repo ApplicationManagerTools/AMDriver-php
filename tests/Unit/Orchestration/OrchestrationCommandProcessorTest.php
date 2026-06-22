@@ -11,7 +11,6 @@ use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
 use ApplicationManagerTools\AmDriver\Core\Exception\HandlerFailedException;
-use ApplicationManagerTools\AmDriver\Core\Exception\ValidationException;
 use ApplicationManagerTools\AmDriver\Core\Http\AmApiClientInterface;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\IdempotencyStoreInterface;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\OrchestrationCommandLifecycleStoreInterface;
