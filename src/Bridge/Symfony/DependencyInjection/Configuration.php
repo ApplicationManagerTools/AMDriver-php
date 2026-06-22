@@ -41,6 +41,11 @@ final class Configuration implements ConfigurationInterface
                     ->info('Override full path; default is derived from route_prefix.')
                 ->end()
                 ->scalarNode('expected_instance_id')->defaultNull()->end()
+                ->enumNode('create_instance_execution')
+                    ->values(['sync', 'deferred'])
+                    ->defaultValue('sync')
+                    ->info('sync: handler runs in HTTP request; deferred: HTTP 200 immediately, host dispatches async execution.')
+                ->end()
             ->end();
 
         return $treeBuilder;

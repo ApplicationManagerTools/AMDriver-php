@@ -32,6 +32,13 @@ services:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'idempotencyStore']
         arguments: ['%am_driver.config%']
 
+    ApplicationManagerTools\AmDriver\Core\Idempotency\FileOrchestrationCommandLifecycleStore:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'lifecycleStore']
+        arguments: ['%am_driver.config%']
+
+    ApplicationManagerTools\AmDriver\Core\Idempotency\OrchestrationCommandLifecycleStoreInterface:
+        alias: ApplicationManagerTools\AmDriver\Core\Idempotency\FileOrchestrationCommandLifecycleStore
+
     ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'resourceSnapshotStore']
         arguments: ['%am_driver.config%']
@@ -63,6 +70,18 @@ services:
     ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor:
         arguments:
             $idempotencyStore: '@ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore'
+            $lifecycleStore: '@ApplicationManagerTools\AmDriver\Core\Idempotency\OrchestrationCommandLifecycleStoreInterface'
+            $deferredDispatcher: '@ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface'
+            $createInstanceExecution: '%am_driver.config.create_instance_execution%'
+
+    ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface:
+        class: ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher
+
+    ApplicationManagerTools\AmDriver\Core\Orchestration\DeferredCreateInstanceWorker: ~
+
+    ApplicationManagerTools\AmDriver\Bridge\Console\Command\ExecuteDeferredCreateInstanceCommand:
+        tags:
+            - { name: console.command }
 
     ApplicationManagerTools\AmDriver\Core\Snapshot\ConsumptionPublisher:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\ConsumptionPublisherFactory', 'create']

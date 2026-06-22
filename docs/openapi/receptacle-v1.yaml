@@ -57,9 +57,11 @@ paths:
       operationId: receptacleOrchestrationCommandCreate
       description: >
         Point d’entrée unique pour `CREATE_INSTANCE`, `STOP_INSTANCE` et `START_INSTANCE`.
-        `DESTROY_INSTANCE` est rejeté en v1 (`400`). Idempotence sur `idempotencyKey` :
+        Idempotence sur `idempotencyKey` :
         rejeu sans effet secondaire → `200` avec `alreadyProcessed: true`.
-        En cas d’échec handler, le bundle notifie AM via callback (voir `am-client-v1.yaml`).
+        En cas d'échec handler, le bundle notifie AM via callback (voir `am-client-v1.yaml`).
+        Avec `create_instance_execution: deferred`, `CREATE_INSTANCE` répond `200` avant l'exécution ;
+        le callback part après traitement async (`executeCreateInstance`).
       security:
         - orchestrationCommandToken: []
       parameters:

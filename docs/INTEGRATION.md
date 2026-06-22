@@ -35,6 +35,7 @@ Exemple aligné sur `ApplicationManager/.env.local.dist` :
 | `source` | `AM_DRIVER_SOURCE` | `captain-learning`, `accident-prediction`, `application-manager` |
 | `expected_tenant_id` | `AM_DRIVER_EXPECTED_TENANT_ID` | (optionnel) garde-fou mono-tenant |
 | `expected_instance_id` | `AM_DRIVER_EXPECTED_INSTANCE_ID` | (optionnel) |
+| `create_instance_execution` | — | `sync` (défaut) ou `deferred` pour CREATE_INSTANCE |
 | `data_dir` | — | Répertoire snapshots / idempotence / état opérationnel |
 
 ## Routes exposées (défaut)
@@ -71,6 +72,7 @@ Sous `{data_dir}/` :
 - `snapshots/{tenantId}.json` — `managed-instance-resource-snapshot.v1`
 - `operational-state/{tenantId}-operational-state.json` — dernier `instance-operational-state.v1`
 - `idempotency/` — clés commandes déjà traitées
+- `idempotency-in-progress/` — commandes CREATE_INSTANCE en cours (mode `deferred`)
 - `operational-state-receipts/` — dedup `correlationId` + `computedAt`
 
 ## Paramètres Symfony (`am_driver.config.*`)
@@ -93,5 +95,23 @@ Voir [INTEGRATION-SAME-APP.md](./INTEGRATION-SAME-APP.md) (dogfooding, boucle Do
 Consommation : un POST AM par `resourceKey` ; `lastPushedToAm` mis à jour seulement sur **HTTP 202**.
 
 Callbacks : envoyés après issue handler (succès → `SUCCEEDED`, échec métier → `FAILED` / `RETRYABLE_FAILURE`).
+
+### CREATE_INSTANCE en mode `deferred`
+
+```yaml
+am_driver:
+    create_instance_execution: deferred
+```
+
+1. HTTP `POST /orchestration/commands` → **200** `{ "accepted": true }` sans attendre le provisionnement.
+2. L’hôte implémente `DeferredCreateInstanceDispatcherInterface` (ex. subprocess vers `am-driver:execute-deferred-create-instance`).
+3. Le worker appelle `DeferredCreateInstanceWorker` → handler métier → callback AM avec `location`.
+
+Override Symfony :
+
+```yaml
+ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface:
+    class: App\Infrastructure\Am\SubprocessDeferredCreateInstanceDispatcher
+```
 
 Voir [ECARTS-AM.md](./ECARTS-AM.md).

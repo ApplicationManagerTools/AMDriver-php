@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory;
 
 use ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore;
+use ApplicationManagerTools\AmDriver\Core\Idempotency\FileOrchestrationCommandLifecycleStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
@@ -17,6 +18,14 @@ final class StorageFactory
     public static function idempotencyStore(array $config): FileIdempotencyStore
     {
         return new FileIdempotencyStore(self::dataDir($config).'/idempotency');
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    public static function lifecycleStore(array $config): FileOrchestrationCommandLifecycleStore
+    {
+        return new FileOrchestrationCommandLifecycleStore(self::dataDir($config).'/idempotency-in-progress');
     }
 
     /**

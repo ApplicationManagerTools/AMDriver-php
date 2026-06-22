@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.0.12 — 2026-06-22
+
+### Added
+
+- **`create_instance_execution`** (`sync` | `deferred`, défaut `sync`) : en mode `deferred`, `CREATE_INSTANCE` répond HTTP 200 immédiatement ; l’hôte dispatche l’exécution via `DeferredCreateInstanceDispatcherInterface` ; le callback AM part après `executeCreateInstance()`.
+- **`DeferredCreateInstanceDispatcherInterface`**, **`DeferredCreateInstanceWorker`**, commande console **`am-driver:execute-deferred-create-instance`**.
+- **`OrchestrationCommandLifecycleStoreInterface`** : suivi des commandes en cours (`idempotency-in-progress/`) pour éviter un double provisionnement pendant le traitement async.
+
+### Changed
+
+- **`OrchestrationCommandProcessor::executeCreateInstance()`** : méthode publique pour l’exécution différée (handler + idempotence + callback).
+
 ## 0.0.10 — 2026-06-11
 
 ### Added
