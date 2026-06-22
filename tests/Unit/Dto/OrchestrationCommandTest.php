@@ -148,6 +148,28 @@ final class OrchestrationCommandTest extends TestCase
         // Assert
         self::assertSame('UtilisateurSouhaite', $command->name());
         self::assertSame('client@example.com', $command->credentialsLogin());
-        self::assertSame([], $roundTrip['metadata']);
+        self::assertSame([
+            'subscriptionId' => 'sub_1Q2w3e4r5t6y7u8i9o0p',
+            'formulaId' => 'am_sfm_10000000-0000-4000-8000-000000000001',
+            'formulaName' => 'Pro',
+        ], $roundTrip['metadata']);
+    }
+
+    public function testFromArrayCreateInstanceWithBillingMetadata(): void
+    {
+        // Arrange
+        $metadata = [
+            'subscriptionId' => 'sub_billing',
+            'formulaId' => 'am_sfm_20000000-0000-4000-8000-000000000002',
+            'formulaName' => 'Enterprise',
+        ];
+        $data = $this->basePayload() + ['metadata' => $metadata];
+
+        // Act
+        $command = OrchestrationCommand::fromArray($data);
+
+        // Assert
+        self::assertSame($metadata, $command->metadata());
+        self::assertSame($metadata, $command->toArray()['metadata']);
     }
 }

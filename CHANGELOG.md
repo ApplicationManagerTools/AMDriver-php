@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.13 — 2026-06-22
+
+### Added
+
+- OpenAPI `receptacle-v1` : propriétés recommandées sous `metadata` pour `CREATE_INSTANCE` billing (`subscriptionId`, `formulaId`, `formulaName`).
+- Fixture `orchestration-command-create-enriched.json` : exemple metadata billing AM.
+
+### Changed
+
+- Documentation uniquement ; le DTO `OrchestrationCommand` accepte déjà `metadata` libre (`additionalProperties`).
+
 ## 0.0.12 — 2026-06-22
 
 ### Added
