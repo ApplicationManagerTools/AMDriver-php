@@ -40,7 +40,8 @@ final class OrchestrationCommandProcessorTest extends TestCase
         $dispatched = false;
         $processor = $this->processor(
             $callbacks,
-            deferredDispatcher: new class($dispatched) implements DeferredCreateInstanceDispatcherInterface {
+            null,
+            new class($dispatched) implements DeferredCreateInstanceDispatcherInterface {
                 public bool $dispatched;
 
                 public function __construct(bool &$dispatched)
@@ -53,7 +54,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                     $this->dispatched = true;
                 }
             },
-            createInstanceExecution: OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
+            OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
         );
 
         $result = $processor->process($command);
@@ -70,7 +71,9 @@ final class OrchestrationCommandProcessorTest extends TestCase
         $callbacks = [];
         $processor = $this->processor(
             $callbacks,
-            createInstanceExecution: OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
+            null,
+            null,
+            OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
         );
 
         $processor->executeCreateInstance($command);
@@ -89,8 +92,8 @@ final class OrchestrationCommandProcessorTest extends TestCase
         $dispatched = false;
         $processor = $this->processor(
             $callbacks,
-            lifecycleStore: $lifecycle,
-            deferredDispatcher: new class($dispatched) implements DeferredCreateInstanceDispatcherInterface {
+            $lifecycle,
+            new class($dispatched) implements DeferredCreateInstanceDispatcherInterface {
                 public bool $dispatched;
 
                 public function __construct(bool &$dispatched)
@@ -103,7 +106,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                     $this->dispatched = true;
                 }
             },
-            createInstanceExecution: OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
+            OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
         );
 
         $result = $processor->process($command);
@@ -126,7 +129,9 @@ final class OrchestrationCommandProcessorTest extends TestCase
         $callbacks = [];
         $processor = $this->processor(
             $callbacks,
-            createInstanceExecution: OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
+            null,
+            null,
+            OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_DEFERRED,
         );
 
         $result = $processor->process($command);
@@ -202,7 +207,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
         try {
             $processor->executeCreateInstance($command);
             self::fail('Expected HandlerFailedException');
-        } catch (HandlerFailedException) {
+        } catch (HandlerFailedException $e) {
         }
 
         self::assertFalse($lifecycle->isInProgress($command->idempotencyKey()));
@@ -229,7 +234,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
         array &$callbacks,
         ?OrchestrationCommandLifecycleStoreInterface $lifecycleStore = null,
         ?DeferredCreateInstanceDispatcherInterface $deferredDispatcher = null,
-        string $createInstanceExecution = OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC,
+        string $createInstanceExecution = OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC
     ): OrchestrationCommandProcessor {
         return new OrchestrationCommandProcessor(
             new class implements CreateInstanceHandlerInterface {
