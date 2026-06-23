@@ -18,7 +18,7 @@ final class AmApiClientTest extends TestCase
     {
         // Arrange
         $recording = new RecordingHttpClient();
-        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-cons', 'secret-cb', 5.0, 0));
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app', 5.0, 0));
 
         // Act
         $response = $api->pushConsumption(new ConsumptionWebhookEvent(
@@ -33,14 +33,14 @@ final class AmApiClientTest extends TestCase
         self::assertSame(202, $response['statusCode']);
         self::assertSame('POST', $recording->method);
         self::assertStringContainsString('/api/v1/orchestration/consumption-events', $recording->url);
-        self::assertSame('secret-cons', $this->headerValue($recording->options, 'X-Consumption-Webhook-Token'));
+        self::assertSame('secret-app', $this->headerValue($recording->options, 'X-AM-Application-Token'));
     }
 
     public function testReportCallbackUsesCallbackToken(): void
     {
         // Arrange
         $recording = new RecordingHttpClient();
-        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-cons', 'secret-cb'));
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
 
         // Act
         $response = $api->reportOrchestrationCallback(new OrchestrationCallbackRequest(
@@ -51,14 +51,14 @@ final class AmApiClientTest extends TestCase
         // Assert
         self::assertSame(202, $response['statusCode']);
         self::assertStringContainsString('/api/v1/orchestration/commands/callbacks', $recording->url);
-        self::assertSame('secret-cb', $this->headerValue($recording->options, 'X-Orchestration-Callback-Token'));
+        self::assertSame('secret-app', $this->headerValue($recording->options, 'X-AM-Application-Token'));
     }
 
     public function testReportCallbackSerializesLocationInJsonBody(): void
     {
         // Arrange
         $recording = new RecordingHttpClient();
-        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-cons', 'secret-cb'));
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
 
         // Act
         $api->reportOrchestrationCallback(new OrchestrationCallbackRequest(

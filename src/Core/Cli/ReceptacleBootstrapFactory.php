@@ -27,8 +27,7 @@ final class ReceptacleBootstrapFactory
      *   source: string,
      *   orchestration_path: string,
      *   operational_state_path: string,
-     *   token_command: string,
-     *   token_state: string
+     *   application_token: string
      * } $config
      */
     public static function createKernel(array $config): ReceptacleHttpKernel
@@ -53,8 +52,7 @@ final class ReceptacleBootstrapFactory
             ),
             $config['orchestration_path'],
             $config['operational_state_path'],
-            $config['token_command'],
-            $config['token_state'],
+            $config['application_token'],
         );
     }
 

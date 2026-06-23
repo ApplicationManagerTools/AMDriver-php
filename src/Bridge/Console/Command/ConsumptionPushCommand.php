@@ -30,7 +30,7 @@ final class ConsumptionPushCommand extends Command
             ->addOption('source', null, InputOption::VALUE_REQUIRED, 'source', 'am-driver-cli')
             ->addOption('occurred-at', null, InputOption::VALUE_REQUIRED, 'ISO8601 occurredAt')
             ->addOption('am-url', null, InputOption::VALUE_REQUIRED, 'AM base URL')
-            ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-Consumption-Webhook-Token');
+            ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-AM-Application-Token');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -55,7 +55,6 @@ final class ConsumptionPushCommand extends Command
         $client = new AmApiClient(HttpClient::create(), new AmApiClientConfig(
             (string) $input->getOption('am-url'),
             (string) $input->getOption('token'),
-            'unused-callback-token',
         ));
 
         $event = new ConsumptionWebhookEvent(

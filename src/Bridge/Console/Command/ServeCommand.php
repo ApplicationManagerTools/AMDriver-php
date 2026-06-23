@@ -21,8 +21,7 @@ final class ServeCommand extends Command
             ->setDescription('Start the managed-app receptacle HTTP server (built-in PHP server)')
             ->addOption('port', null, InputOption::VALUE_REQUIRED, 'Listen port', '8099')
             ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Listen host', '127.0.0.1')
-            ->addOption('token-command', null, InputOption::VALUE_REQUIRED, 'X-Orchestration-Command-Token', 'dev-command-token')
-            ->addOption('token-state', null, InputOption::VALUE_REQUIRED, 'X-Instance-Operational-State-Token', 'dev-state-token')
+            ->addOption('application-token', null, InputOption::VALUE_REQUIRED, 'X-AM-Application-Token', 'dev-application-token')
             ->addOption('data-dir', null, InputOption::VALUE_REQUIRED, 'Persistence directory', sys_get_temp_dir().'/am-driver-receptacle')
             ->addOption('source', null, InputOption::VALUE_REQUIRED, 'Consumption source identifier', 'am-driver-receptacle');
     }
@@ -47,8 +46,7 @@ final class ServeCommand extends Command
             'source' => $source,
             'orchestration_path' => $orchestrationPath,
             'operational_state_path' => $statePath,
-            'token_command' => (string) $input->getOption('token-command'),
-            'token_state' => (string) $input->getOption('token-state'),
+            'application_token' => (string) $input->getOption('application-token'),
         ]);
 
         $router = __DIR__.'/../../../Core/Cli/ReceptacleServerRouter.php';

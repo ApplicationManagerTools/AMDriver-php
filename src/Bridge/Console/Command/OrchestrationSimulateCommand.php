@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ApplicationManagerTools\AmDriver\Bridge\Console\Command;
 
+use ApplicationManagerTools\AmDriver\Core\Http\ApplicationTokenAuthenticator;
 use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
@@ -25,7 +26,7 @@ class OrchestrationSimulateCommand extends Command
             ->addArgument('operation', InputArgument::OPTIONAL, 'create|stop|start', 'create')
             ->addOption('base-url', null, InputOption::VALUE_REQUIRED, 'Receptacle base URL', 'http://127.0.0.1:8099')
             ->addOption('path', null, InputOption::VALUE_REQUIRED, 'Command path', '/internal/am/orchestration/commands')
-            ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-Orchestration-Command-Token', 'dev-command-token')
+            ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-AM-Application-Token', 'dev-application-token')
             ->addOption('instance-id', null, InputOption::VALUE_REQUIRED, 'instanceId', 'am_ins_10000000-0000-4000-8000-000000000001')
             ->addOption('app-id', null, InputOption::VALUE_REQUIRED, 'appId', 'am_app_10000000-0000-4000-8000-000000000001')
             ->addOption('target-id', null, InputOption::VALUE_REQUIRED, 'targetId', 'local-receptacle');
@@ -63,7 +64,7 @@ class OrchestrationSimulateCommand extends Command
         $response = $client->request('POST', $url, [
             'headers' => [
                 'Content-Type' => 'application/json',
-                'X-Orchestration-Command-Token' => (string) $input->getOption('token'),
+                ApplicationTokenAuthenticator::HEADER_NAME => (string) $input->getOption('token'),
             ],
             'json' => $payload,
         ]);

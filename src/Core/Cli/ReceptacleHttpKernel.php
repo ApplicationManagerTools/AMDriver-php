@@ -6,6 +6,7 @@ namespace ApplicationManagerTools\AmDriver\Core\Cli;
 
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
 use ApplicationManagerTools\AmDriver\Core\Exception\ValidationException;
+use ApplicationManagerTools\AmDriver\Core\Http\ApplicationTokenAuthenticator;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor;
 use ApplicationManagerTools\AmDriver\Core\Validation\JsonPayloadValidator;
@@ -28,26 +29,21 @@ final class ReceptacleHttpKernel
     /** @var string */
     private $operationalStatePath;
 
-    /** @var string */
-    private $orchestrationToken;
-
-    /** @var string */
-    private $operationalStateToken;
+    /** @var ApplicationTokenAuthenticator */
+    private $authenticator;
 
     public function __construct(
         OrchestrationCommandProcessor $orchestrationProcessor,
         OperationalStateProcessor $operationalStateProcessor,
         string $orchestrationPath,
         string $operationalStatePath,
-        string $orchestrationToken,
-        string $operationalStateToken
+        string $applicationToken
     ) {
         $this->orchestrationProcessor = $orchestrationProcessor;
         $this->operationalStateProcessor = $operationalStateProcessor;
         $this->orchestrationPath = $orchestrationPath;
         $this->operationalStatePath = $operationalStatePath;
-        $this->orchestrationToken = $orchestrationToken;
-        $this->operationalStateToken = $operationalStateToken;
+        $this->authenticator = new ApplicationTokenAuthenticator($applicationToken);
     }
 
     /**
@@ -83,7 +79,7 @@ final class ReceptacleHttpKernel
      */
     private function handleOrchestration(string $body, array $headers): array
     {
-        if (!$this->tokenMatches($headers, 'X-Orchestration-Command-Token', $this->orchestrationToken)) {
+        if (!$this->authenticator->matchesHeaderMap($headers)) {
             return [401, json_encode(['error' => 'Invalid token'], JSON_THROW_ON_ERROR)];
         }
 
@@ -104,7 +100,7 @@ final class ReceptacleHttpKernel
      */
     private function handleOperationalState(string $body, array $headers): array
     {
-        if (!$this->tokenMatches($headers, 'X-Instance-Operational-State-Token', $this->operationalStateToken)) {
+        if (!$this->authenticator->matchesHeaderMap($headers)) {
             return [401, json_encode(['error' => 'Invalid token'], JSON_THROW_ON_ERROR)];
         }
 
@@ -117,20 +113,5 @@ final class ReceptacleHttpKernel
         } catch (Throwable $e) {
             return [500, json_encode(['error' => 'Transient error'], JSON_THROW_ON_ERROR)];
         }
-    }
-
-    /**
-     * @param array<string, list<string>> $headers
-     */
-    private function tokenMatches(array $headers, string $name, string $expected): bool
-    {
-        $needle = strtolower($name);
-        foreach ($headers as $key => $values) {
-            if (strtolower((string) $key) === $needle) {
-                return '' !== $expected && hash_equals($expected, (string) ($values[0] ?? ''));
-            }
-        }
-
-        return false;
     }
 }
