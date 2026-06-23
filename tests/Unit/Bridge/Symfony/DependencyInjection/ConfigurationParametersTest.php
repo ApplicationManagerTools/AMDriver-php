@@ -21,8 +21,7 @@ final class ConfigurationParametersTest extends TestCase
             'source' => 'application-manager',
             'data_dir' => '/var/am-driver-data',
             'route_prefix' => 'internal/am',
-            'orchestration_command_token' => 'cmd-token',
-            'operational_state_token' => 'state-token',
+            'application_token' => 'app-token',
         ]], $container);
 
         // Assert
@@ -38,7 +37,7 @@ final class ConfigurationParametersTest extends TestCase
             '/internal/am/instance-operational-state',
             $container->getParameter('am_driver.config.operational_state_path'),
         );
-        self::assertSame('cmd-token', $container->getParameter('am_driver.config.orchestration_command_token'));
+        self::assertSame('app-token', $container->getParameter('am_driver.config.application_token'));
     }
 
     public function testExtensionUsesDefaultRoutePrefixWhenOmitted(): void
@@ -50,8 +49,7 @@ final class ConfigurationParametersTest extends TestCase
         // Act
         $extension->load([[
             'source' => 'application-manager',
-            'orchestration_command_token' => 'cmd-token',
-            'operational_state_token' => 'state-token',
+            'application_token' => 'app-token',
         ]], $container);
 
         // Assert

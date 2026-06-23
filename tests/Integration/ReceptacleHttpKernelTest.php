@@ -32,7 +32,7 @@ final class ReceptacleHttpKernelTest extends TestCase
         $kernel = $this->kernel($dataDir, $log);
         $body = file_get_contents(dirname(__DIR__).'/fixtures/orchestration-command-create.json');
         self::assertNotFalse($body);
-        $headers = ['X-Orchestration-Command-Token' => ['dev-command-token']];
+        $headers = ['X-AM-Application-Token' => ['dev-application-token']];
 
         // Act
         $orchestrationPath = ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
@@ -52,7 +52,7 @@ final class ReceptacleHttpKernelTest extends TestCase
         $kernel = $this->kernel($dataDir, new CommandCallLog());
         $body = file_get_contents(dirname(__DIR__).'/fixtures/instance-operational-state-am-minimal.json');
         self::assertNotFalse($body);
-        $headers = ['X-Instance-Operational-State-Token' => ['dev-state-token']];
+        $headers = ['X-AM-Application-Token' => ['dev-application-token']];
 
         // Act
         $statePath = ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
@@ -86,8 +86,7 @@ final class ReceptacleHttpKernelTest extends TestCase
             ),
             ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
             ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX),
-            'dev-command-token',
-            'dev-state-token',
+            'dev-application-token',
         );
     }
 }

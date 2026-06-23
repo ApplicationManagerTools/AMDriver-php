@@ -52,7 +52,35 @@ final class ReceiverRoutePaths
         $config['route_prefix'] = $prefix;
         $config['orchestration_commands_path'] ??= self::orchestrationCommandsPath($prefix);
         $config['operational_state_path'] ??= self::operationalStatePath($prefix);
+        $config['application_token'] = self::resolveApplicationToken($config);
 
         return $config;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private static function resolveApplicationToken(array $config): string
+    {
+        $token = trim((string) ($config['application_token'] ?? ''));
+        if ('' !== $token && !str_starts_with($token, '%env(')) {
+            return $token;
+        }
+
+        foreach (
+            [
+                'orchestration_command_token',
+                'consumption_webhook_token',
+                'orchestration_callback_token',
+                'operational_state_token',
+            ] as $legacyKey
+        ) {
+            $legacy = trim((string) ($config[$legacyKey] ?? ''));
+            if ('' !== $legacy) {
+                return $legacy;
+            }
+        }
+
+        return '' !== $token ? $token : '%env(AM_DRIVER_APPLICATION_TOKEN)%';
     }
 }

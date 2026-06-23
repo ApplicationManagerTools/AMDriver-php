@@ -33,7 +33,7 @@ final class HttpOrchestrationConnectivityProbe implements ConnectivityProbeInter
             $response = $this->httpClient->request('POST', $orchestrationUrl, [
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'X-Orchestration-Command-Token' => $commandToken,
+                    ApplicationTokenAuthenticator::HEADER_NAME => $commandToken,
                 ],
                 'body' => '{}',
                 'timeout' => $this->timeoutSeconds,

@@ -32,9 +32,6 @@ final class OrchestrationCommand
     private $occurredAt;
 
     /** @var string|null */
-    private $instanceIntegrationToken;
-
-    /** @var string|null */
     private $name;
 
     /** @var string|null */
@@ -53,7 +50,6 @@ final class OrchestrationCommand
         string $idempotencyKey,
         string $occurredAt,
         ?string $correlationId = null,
-        ?string $instanceIntegrationToken = null,
         ?string $name = null,
         ?string $credentialsLogin = null,
         array $metadata = []
@@ -64,7 +60,6 @@ final class OrchestrationCommand
         $this->correlationId = $correlationId;
         $this->idempotencyKey = $idempotencyKey;
         $this->occurredAt = $occurredAt;
-        $this->instanceIntegrationToken = $instanceIntegrationToken;
         $this->name = $name;
         $this->credentialsLogin = $credentialsLogin;
         $this->metadata = $metadata;
@@ -87,7 +82,6 @@ final class OrchestrationCommand
         self::assertEnrichmentRules($operation, $data);
 
         $correlationId = self::parseOptionalNonEmptyString($data, 'correlationId');
-        $instanceToken = self::parseOptionalNonEmptyString($data, 'instanceIntegrationToken');
 
         $name = null;
         $credentialsLogin = null;
@@ -106,7 +100,6 @@ final class OrchestrationCommand
             (string) $data['idempotencyKey'],
             (string) $data['occurredAt'],
             $correlationId,
-            $instanceToken,
             $name,
             $credentialsLogin,
             $metadata,
@@ -143,11 +136,6 @@ final class OrchestrationCommand
         return $this->occurredAt;
     }
 
-    public function instanceIntegrationToken(): ?string
-    {
-        return $this->instanceIntegrationToken;
-    }
-
     public function name(): ?string
     {
         return $this->name;
@@ -180,9 +168,6 @@ final class OrchestrationCommand
         ];
         if (null !== $this->correlationId) {
             $payload['correlationId'] = $this->correlationId;
-        }
-        if (null !== $this->instanceIntegrationToken) {
-            $payload['instanceIntegrationToken'] = $this->instanceIntegrationToken;
         }
         if ($this->operation->isCreate()) {
             if (null !== $this->name) {

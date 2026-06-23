@@ -5,14 +5,14 @@ services:
 
     ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OrchestrationCommandController:
         arguments:
-            $orchestrationCommandToken: '%am_driver.config.orchestration_command_token%'
+            $applicationToken: '%am_driver.config.application_token%'
         tags:
             - controller.service_arguments
         public: true
 
     ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OperationalStateController:
         arguments:
-            $operationalStateToken: '%am_driver.config.operational_state_token%'
+            $applicationToken: '%am_driver.config.application_token%'
         tags:
             - controller.service_arguments
         public: true

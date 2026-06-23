@@ -1,55 +1,13 @@
 # Changelog
 
-## 0.0.13 — 2026-06-22
+## 0.0.14 — 2026-06-23
+
+### Breaking
+
+- Configuration : un seul paramètre `application_token` / env `AM_DRIVER_APPLICATION_TOKEN` (les 4 clés legacy restent acceptées en alias de migration).
+- HTTP : uniquement `X-AM-Application-Token` (entrée et sortie vers AM).
+- Retrait de `instanceIntegrationToken` dans `OrchestrationCommand`.
 
 ### Added
 
-- OpenAPI `receptacle-v1` : propriétés recommandées sous `metadata` pour `CREATE_INSTANCE` billing (`subscriptionId`, `formulaId`, `formulaName`).
-- Fixture `orchestration-command-create-enriched.json` : exemple metadata billing AM.
-
-### Changed
-
-- Documentation uniquement ; le DTO `OrchestrationCommand` accepte déjà `metadata` libre (`additionalProperties`).
-
-## 0.0.12 — 2026-06-22
-
-### Added
-
-- **`create_instance_execution`** (`sync` | `deferred`, défaut `sync`) : en mode `deferred`, `CREATE_INSTANCE` répond HTTP 200 immédiatement ; l’hôte dispatche l’exécution via `DeferredCreateInstanceDispatcherInterface` ; le callback AM part après `executeCreateInstance()`.
-- **`DeferredCreateInstanceDispatcherInterface`**, **`DeferredCreateInstanceWorker`**, commande console **`am-driver:execute-deferred-create-instance`**.
-- **`OrchestrationCommandLifecycleStoreInterface`** : suivi des commandes en cours (`idempotency-in-progress/`) pour éviter un double provisionnement pendant le traitement async.
-
-### Changed
-
-- **`OrchestrationCommandProcessor::executeCreateInstance()`** : méthode publique pour l’exécution différée (handler + idempotence + callback).
-
-## 0.0.10 — 2026-06-11
-
-### Added
-
-- **`OrchestrationCommand`** : champs enrichis optionnels pour `CREATE_INSTANCE` uniquement :
-  - `name` (getter `name()`)
-  - `credentials.login` (getter `credentialsLogin()`)
-  - `metadata` (getter `metadata()`, défaut `[]`)
-- Validation : `name`, `credentials`, `metadata` interdits hors `CREATE_INSTANCE` ; clé legacy `shortname` rejetée.
-
-## 0.0.9 — 2026-06-11
-
-### Breaking changes
-
-- **Correlation key** : `tenantId` remplacé par `instanceId` partout dans le bundle (DTO, snapshots, état opérationnel, consommation, espace disque local).
-- **`OrchestrationCommand`** : `tenantId` supprimé du corps ; `correlationId` devient optionnel. Clés requises : `operation`, `appId`, `instanceId`, `idempotencyKey`, `occurredAt`.
-- **`ConsumptionWebhookEvent`** : champ JSON `tenantId` → `instanceId`.
-- **`ManagedInstanceResourceSnapshot`** : champ JSON `tenantId` → `instanceId` ; getter `instanceId()`.
-- **Stores / managers** : paramètres et méthodes `findByTenantId()` → `findByInstanceId()` ; `load($instanceId)`, `save($instanceId, …)`, etc.
-- **`InstanceOperationalStateValidator`** : exige `instance.instanceId` ; garde-fou `expected_tenant_id` supprimé (utiliser `expected_instance_id`).
-- **CLI** : `--tenant-id` → `--instance-id` (`consumption:push`, `orchestration:simulate`).
-
-### Migration
-
-- Renommer les fichiers locaux `snapshots/{tenantId}.json` → `snapshots/{instanceId}.json` (et équivalents operational-state / receipts).
-- Mettre à jour les payloads AM et les appels `pushResourceConsumption($instanceId, …)`.
-
-## 0.0.8
-
-Versions antérieures : voir tags Git.
+- `ApplicationTokenAuthenticator` partagé (contrôleurs Symfony + `ReceptacleHttpKernel`).

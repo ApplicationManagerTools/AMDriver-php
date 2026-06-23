@@ -10,10 +10,7 @@ final class AmApiClientConfig
     private $baseUrl;
 
     /** @var string */
-    private $consumptionWebhookToken;
-
-    /** @var string */
-    private $orchestrationCallbackToken;
+    private $applicationToken;
 
     /** @var float */
     private $timeoutSeconds;
@@ -26,15 +23,13 @@ final class AmApiClientConfig
 
     public function __construct(
         string $baseUrl,
-        string $consumptionWebhookToken,
-        string $orchestrationCallbackToken,
+        string $applicationToken,
         float $timeoutSeconds = 10.0,
         int $consumptionMaxRetries = 3,
         int $consumptionRetryDelayMs = 500
     ) {
         $this->baseUrl = rtrim($baseUrl, '/');
-        $this->consumptionWebhookToken = $consumptionWebhookToken;
-        $this->orchestrationCallbackToken = $orchestrationCallbackToken;
+        $this->applicationToken = $applicationToken;
         $this->timeoutSeconds = $timeoutSeconds;
         $this->consumptionMaxRetries = $consumptionMaxRetries;
         $this->consumptionRetryDelayMs = $consumptionRetryDelayMs;
@@ -45,14 +40,9 @@ final class AmApiClientConfig
         return $this->baseUrl;
     }
 
-    public function consumptionWebhookToken(): string
+    public function applicationToken(): string
     {
-        return $this->consumptionWebhookToken;
-    }
-
-    public function orchestrationCallbackToken(): string
-    {
-        return $this->orchestrationCallbackToken;
+        return $this->applicationToken;
     }
 
     public function timeoutSeconds(): float

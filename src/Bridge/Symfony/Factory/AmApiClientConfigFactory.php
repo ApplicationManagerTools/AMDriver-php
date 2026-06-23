@@ -15,8 +15,7 @@ final class AmApiClientConfigFactory
     {
         return new AmApiClientConfig(
             (string) $config['am_base_url'],
-            (string) $config['consumption_webhook_token'],
-            (string) $config['orchestration_callback_token'],
+            (string) $config['application_token'],
             (float) $config['http_timeout'],
             (int) $config['consumption_max_retries'],
             (int) $config['consumption_retry_delay_ms'],

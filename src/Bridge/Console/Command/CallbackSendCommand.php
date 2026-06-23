@@ -23,7 +23,7 @@ final class CallbackSendCommand extends Command
             ->setName('callback:send')
             ->setDescription('Send an orchestration callback to Application Manager')
             ->addOption('am-url', null, InputOption::VALUE_REQUIRED, 'AM base URL')
-            ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-Orchestration-Callback-Token')
+            ->addOption('token', null, InputOption::VALUE_REQUIRED, 'X-AM-Application-Token')
             ->addOption('idempotency-key', null, InputOption::VALUE_REQUIRED, 'idempotencyKey')
             ->addOption('status', null, InputOption::VALUE_REQUIRED, 'SUCCEEDED|FAILED|RETRYABLE_FAILURE', 'SUCCEEDED')
             ->addOption('message', null, InputOption::VALUE_OPTIONAL, 'Optional message')
@@ -43,7 +43,6 @@ final class CallbackSendCommand extends Command
 
         $client = new AmApiClient(HttpClient::create(), new AmApiClientConfig(
             (string) $input->getOption('am-url'),
-            'unused-consumption-token',
             (string) $input->getOption('token'),
         ));
 
