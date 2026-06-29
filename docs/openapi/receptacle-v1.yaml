@@ -12,7 +12,7 @@ info:
     Exemples : `route_prefix: am` → `http://host/am` ; `api/v1/am` → `http://host/api/v1/am` ;
     `internal/am` → `http://host/internal/am`.
 
-    **Réponses** : JSON plat (`accepted`, `error`) — **sans** enveloppe `ApiResponseBody` du back AM.
+    **Réponses** : enveloppe JSON `success`, `data`, `error`, `error_message` (alignée sur le back AM).
 
     Appels **sortants** vers l’API AM : `am-client-v1.yaml` ; plateforme :
     `ApplicationManager/docker/swagger/v1/openapi.yaml`.
@@ -100,40 +100,57 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrchestrationCommandAccepted'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               examples:
                 processed:
                   value:
-                    accepted: true
-                    alreadyProcessed: false
+                    success: true
+                    data:
+                      accepted: true
+                      alreadyProcessed: false
+                    error: ''
+                    error_message: ''
                 idempotentReplay:
                   value:
-                    accepted: true
-                    alreadyProcessed: true
+                    success: true
+                    data:
+                      accepted: true
+                      alreadyProcessed: true
+                    error: ''
+                    error_message: ''
         '400':
           description: JSON invalide, champs manquants, opération non supportée ou échec métier non réessayable
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReceptacleError'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               example:
-                error: 'DESTROY_INSTANCE is not supported by am-driver v1; see docs/ECARTS-AM.md'
+                success: false
+                data: null
+                error: ValidationException
+                error_message: 'DESTROY_INSTANCE is not supported by am-driver v1; see docs/ECARTS-AM.md'
         '401':
           description: Jeton absent ou invalide
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReceptacleError'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               example:
-                error: Invalid orchestration command token
+                success: false
+                data: null
+                error: AccessDeniedHttpException
+                error_message: Invalid application token
         '500':
           description: Erreur transitoire (handler ou interne) — AM peut réessayer la commande
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReceptacleError'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               example:
-                error: Transient error
+                success: false
+                data: null
+                error: OrchestrationCommandRejectedException
+                error_message: Orchestration command rejected
 
   /instance-operational-state:
     post:
@@ -188,33 +205,47 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OperationalStateAccepted'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               example:
-                accepted: true
+                success: true
+                data:
+                  accepted: true
+                  duplicate: false
+                error: ''
+                error_message: ''
         '400':
           description: Schéma incompatible, kind inconnu, tenantId / instanceId incohérents
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReceptacleError'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               example:
-                error: Unsupported kind
+                success: false
+                data: null
+                error: ValidationException
+                error_message: Unsupported kind
         '401':
           description: Jeton absent ou invalide
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReceptacleError'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               example:
-                error: Invalid operational state token
+                success: false
+                data: null
+                error: AccessDeniedHttpException
+                error_message: Invalid application token
         '500':
           description: Erreur transitoire — AM peut réessayer le push
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReceptacleError'
+                $ref: '#/components/schemas/ReceptacleApiResponse'
               example:
-                error: Transient error
+                success: false
+                data: null
+                error: RuntimeException
+                error_message: Transient error
 
 components:
   securitySchemes:
@@ -257,16 +288,26 @@ components:
       description: Alias générique accepté pour les deux routes (même secret que le jeton dédié).
 
   schemas:
-    ReceptacleError:
+    ReceptacleApiResponse:
       type: object
       required:
+        - success
         - error
+        - error_message
       properties:
+        success:
+          type: boolean
+        data:
+          oneOf:
+            - type: 'null'
+            - $ref: '#/components/schemas/OrchestrationCommandAcceptedData'
+            - $ref: '#/components/schemas/OperationalStateAcceptedData'
         error:
           type: string
-          description: Message d’erreur lisible (validation, auth, transitoire).
+        error_message:
+          type: string
 
-    OrchestrationCommandAccepted:
+    OrchestrationCommandAcceptedData:
       type: object
       required:
         - accepted
@@ -279,7 +320,7 @@ components:
           type: boolean
           description: true si la clé d’idempotence était déjà enregistrée.
 
-    OperationalStateAccepted:
+    OperationalStateAcceptedData:
       type: object
       required:
         - accepted
@@ -287,6 +328,9 @@ components:
         accepted:
           type: boolean
           const: true
+        duplicate:
+          type: boolean
+          description: true si le document était déjà reçu (correlationId + computedAt).
 
     OrchestrationCommand:
       type: object

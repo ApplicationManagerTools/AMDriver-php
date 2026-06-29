@@ -1,9 +1,9 @@
 am_driver.orchestration_commands:
     path: '%am_driver.config.orchestration_commands_path%'
-    controller: ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OrchestrationCommandController
+    controller: ApplicationManagerTools\AmDriver\Bridge\Symfony\OrchestrationCommand\Controllers\OrchestrationCommandController
     methods: [POST]
 
 am_driver.operational_state:
     path: '%am_driver.config.operational_state_path%'
-    controller: ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OperationalStateController
+    controller: ApplicationManagerTools\AmDriver\Bridge\Symfony\OperationalState\Controllers\OperationalStateController
     methods: [POST]

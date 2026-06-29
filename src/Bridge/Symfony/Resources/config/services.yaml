@@ -3,14 +3,14 @@ services:
         autowire: true
         autoconfigure: true
 
-    ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OrchestrationCommandController:
+    ApplicationManagerTools\AmDriver\Bridge\Symfony\OrchestrationCommand\Controllers\OrchestrationCommandController:
         arguments:
             $applicationToken: '%am_driver.config.application_token%'
         tags:
             - controller.service_arguments
         public: true
 
-    ApplicationManagerTools\AmDriver\Bridge\Symfony\Controller\OperationalStateController:
+    ApplicationManagerTools\AmDriver\Bridge\Symfony\OperationalState\Controllers\OperationalStateController:
         arguments:
             $applicationToken: '%am_driver.config.application_token%'
         tags:

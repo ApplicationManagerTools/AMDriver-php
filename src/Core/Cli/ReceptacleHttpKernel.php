@@ -4,33 +4,30 @@ declare(strict_types=1);
 
 namespace ApplicationManagerTools\AmDriver\Core\Cli;
 
-use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
-use ApplicationManagerTools\AmDriver\Core\Exception\ValidationException;
-use ApplicationManagerTools\AmDriver\Core\Http\ApplicationTokenAuthenticator;
+use ApplicationManagerTools\AmDriver\Bridge\Http\ResponseEncoder;
+use ApplicationManagerTools\AmDriver\Bridge\Symfony\OperationalState\ReceiveOperationalStateHttpHandler;
+use ApplicationManagerTools\AmDriver\Bridge\Symfony\OrchestrationCommand\ProcessOrchestrationCommandHttpHandler;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor;
-use ApplicationManagerTools\AmDriver\Core\Validation\JsonPayloadValidator;
-use Throwable;
+use stdClass;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Minimal request dispatcher for `bin/am-driver serve` (PHP built-in server).
  */
 final class ReceptacleHttpKernel
 {
-    /** @var OrchestrationCommandProcessor */
-    private $orchestrationProcessor;
+    /** @var ProcessOrchestrationCommandHttpHandler */
+    private $orchestrationHandler;
 
-    /** @var OperationalStateProcessor */
-    private $operationalStateProcessor;
+    /** @var ReceiveOperationalStateHttpHandler */
+    private $operationalStateHandler;
 
     /** @var string */
     private $orchestrationPath;
 
     /** @var string */
     private $operationalStatePath;
-
-    /** @var ApplicationTokenAuthenticator */
-    private $authenticator;
 
     public function __construct(
         OrchestrationCommandProcessor $orchestrationProcessor,
@@ -39,11 +36,16 @@ final class ReceptacleHttpKernel
         string $operationalStatePath,
         string $applicationToken
     ) {
-        $this->orchestrationProcessor = $orchestrationProcessor;
-        $this->operationalStateProcessor = $operationalStateProcessor;
+        $this->orchestrationHandler = new ProcessOrchestrationCommandHttpHandler(
+            $orchestrationProcessor,
+            $applicationToken,
+        );
+        $this->operationalStateHandler = new ReceiveOperationalStateHttpHandler(
+            $operationalStateProcessor,
+            $applicationToken,
+        );
         $this->orchestrationPath = $orchestrationPath;
         $this->operationalStatePath = $operationalStatePath;
-        $this->authenticator = new ApplicationTokenAuthenticator($applicationToken);
     }
 
     /**
@@ -57,61 +59,28 @@ final class ReceptacleHttpKernel
 
         if ('POST' === $method) {
             if ($path === $this->orchestrationPath) {
-                return $this->handleOrchestration($body, $headers);
+                $result = $this->orchestrationHandler->handle($body, $headers);
+
+                return [$result['status'], $result['body']];
             }
 
             if ($path === $this->operationalStatePath) {
-                return $this->handleOperationalState($body, $headers);
+                $result = $this->operationalStateHandler->handle($body, $headers);
+
+                return [$result['status'], $result['body']];
             }
         }
 
         if ('GET' === $method && '/' === $path) {
-            return [200, json_encode(['service' => 'am-driver-receptacle'], JSON_THROW_ON_ERROR)];
+            $data = new stdClass();
+            $data->service = 'am-driver-receptacle';
+            $result = ResponseEncoder::successful($data, 200);
+
+            return [$result['status'], $result['body']];
         }
 
-        return [404, json_encode(['error' => 'Not found'], JSON_THROW_ON_ERROR)];
-    }
+        $result = ResponseEncoder::unsuccessful(new NotFoundHttpException('Not found'), 404);
 
-    /**
-     * @param array<string, list<string>> $headers
-     *
-     * @return array{0: int, 1: string}
-     */
-    private function handleOrchestration(string $body, array $headers): array
-    {
-        if (!$this->authenticator->matchesHeaderMap($headers)) {
-            return [401, json_encode(['error' => 'Invalid token'], JSON_THROW_ON_ERROR)];
-        }
-
-        try {
-            $command = OrchestrationCommand::fromArray(JsonPayloadValidator::parseJsonObject($body));
-            $result = $this->orchestrationProcessor->process($command);
-
-            return [$result['httpStatus'], json_encode(['accepted' => true], JSON_THROW_ON_ERROR)];
-        } catch (ValidationException $e) {
-            return [400, json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)];
-        }
-    }
-
-    /**
-     * @param array<string, list<string>> $headers
-     *
-     * @return array{0: int, 1: string}
-     */
-    private function handleOperationalState(string $body, array $headers): array
-    {
-        if (!$this->authenticator->matchesHeaderMap($headers)) {
-            return [401, json_encode(['error' => 'Invalid token'], JSON_THROW_ON_ERROR)];
-        }
-
-        try {
-            $this->operationalStateProcessor->process(JsonPayloadValidator::parseJsonObject($body));
-
-            return [200, json_encode(['accepted' => true], JSON_THROW_ON_ERROR)];
-        } catch (ValidationException $e) {
-            return [400, json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)];
-        } catch (Throwable $e) {
-            return [500, json_encode(['error' => 'Transient error'], JSON_THROW_ON_ERROR)];
-        }
+        return [$result['status'], $result['body']];
     }
 }

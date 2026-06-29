@@ -36,13 +36,18 @@ final class ReceptacleHttpKernelTest extends TestCase
 
         // Act
         $orchestrationPath = ReceiverRoutePaths::orchestrationCommandsPath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
-        [$status1] = $kernel->handle('POST', $orchestrationPath, $body, $headers);
-        [$status2] = $kernel->handle('POST', $orchestrationPath, $body, $headers);
+        [$status1, $body1] = $kernel->handle('POST', $orchestrationPath, $body, $headers);
+        [$status2, $body2] = $kernel->handle('POST', $orchestrationPath, $body, $headers);
 
         // Assert
         self::assertSame(200, $status1);
         self::assertSame(200, $status2);
         self::assertCount(1, $log->entries());
+        $decoded1 = json_decode($body1, true);
+        self::assertTrue($decoded1['success']);
+        self::assertTrue($decoded1['data']['accepted']);
+        $decoded2 = json_decode($body2, true);
+        self::assertTrue($decoded2['data']['alreadyProcessed']);
     }
 
     public function testOperationalStatePersistsSnapshotCorrelation(): void
@@ -56,12 +61,15 @@ final class ReceptacleHttpKernelTest extends TestCase
 
         // Act
         $statePath = ReceiverRoutePaths::operationalStatePath(ReceiverRoutePaths::DEFAULT_ROUTE_PREFIX);
-        [$status] = $kernel->handle('POST', $statePath, $body, $headers);
+        [$status, $responseBody] = $kernel->handle('POST', $statePath, $body, $headers);
         $snapshotStore = new FileResourceSnapshotStore($dataDir.'/snapshots', 'captain-learning');
         $snapshot = $snapshotStore->load('am_ins_30000000-0000-4000-8000-000000000001');
 
         // Assert
         self::assertSame(200, $status);
+        $decoded = json_decode($responseBody, true);
+        self::assertTrue($decoded['success']);
+        self::assertTrue($decoded['data']['accepted']);
         self::assertNotNull($snapshot);
         self::assertNotNull($snapshot->lastInboundOperationalState());
         self::assertSame('instance-operational-state.v1', $snapshot->lastInboundOperationalState()['schemaVersion']);
