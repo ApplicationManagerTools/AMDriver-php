@@ -184,3 +184,9 @@ components:
           format: uri
           nullable: true
           description: URL d'accès tenant (CREATE_INSTANCE SUCCEEDED).
+        startedAt:
+          type: string
+          format: date-time
+          description: >
+            Horodatage de mise en service côté app gérée.
+            Obligatoire sur CREATE_INSTANCE SUCCEEDED.

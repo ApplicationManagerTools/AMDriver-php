@@ -22,16 +22,21 @@ final class OrchestrationCallbackRequest
     /** @var string|null */
     private $location;
 
+    /** @var string|null */
+    private $startedAt;
+
     public function __construct(
         string $idempotencyKey,
         CallbackStatus $status,
         ?string $message = null,
-        ?string $location = null
+        ?string $location = null,
+        ?string $startedAt = null
     ) {
         $this->idempotencyKey = $idempotencyKey;
         $this->status = $status;
         $this->message = $message;
         $this->location = $location;
+        $this->startedAt = $startedAt;
     }
 
     /**
@@ -57,11 +62,23 @@ final class OrchestrationCallbackRequest
             }
         }
 
+        $startedAt = null;
+        if (\array_key_exists('startedAt', $data)) {
+            if (!\is_string($data['startedAt'])) {
+                throw new InvalidArgumentException('startedAt must be a non-empty string.');
+            }
+            $trimmedStartedAt = trim($data['startedAt']);
+            if ('' !== $trimmedStartedAt) {
+                $startedAt = $trimmedStartedAt;
+            }
+        }
+
         return new self(
             (string) $data['idempotencyKey'],
             CallbackStatus::fromString((string) $data['status']),
             $message,
             $location,
+            $startedAt,
         );
     }
 
@@ -85,6 +102,11 @@ final class OrchestrationCallbackRequest
         return $this->location;
     }
 
+    public function startedAt(): ?string
+    {
+        return $this->startedAt;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -99,6 +121,9 @@ final class OrchestrationCallbackRequest
         }
         if (null !== $this->location) {
             $payload['location'] = $this->location;
+        }
+        if (null !== $this->startedAt) {
+            $payload['startedAt'] = $this->startedAt;
         }
 
         return $payload;

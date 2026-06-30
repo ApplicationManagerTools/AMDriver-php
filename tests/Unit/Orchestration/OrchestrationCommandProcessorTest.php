@@ -30,7 +30,76 @@ final class OrchestrationCommandProcessorTest extends TestCase
 
         self::assertCount(1, $callbacks);
         self::assertSame('https://tenant.example/login', $callbacks[0]['location'] ?? null);
+        self::assertSame('2026-06-26T10:05:00+00:00', $callbacks[0]['startedAt'] ?? null);
         self::assertSame('SUCCEEDED', $callbacks[0]['status'] ?? null);
+    }
+
+    public function testCreateInstanceSuccessWithoutStartedAtFails(): void
+    {
+        $command = $this->createCommand();
+        $callbacks = [];
+        $processor = new OrchestrationCommandProcessor(
+            new class implements CreateInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): CreateInstanceHandlerResult
+                {
+                    return new CreateInstanceHandlerResult('https://tenant.example/login');
+                }
+            },
+            new class implements StopInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements IdempotencyStoreInterface {
+                public function has(string $idempotencyKey): bool
+                {
+                    return false;
+                }
+
+                public function remember(string $idempotencyKey): void
+                {
+                }
+            },
+            new class($callbacks) implements AmApiClientInterface {
+                /** @var list<array<string, mixed>> */
+                private $callbacks;
+
+                /** @param list<array<string, mixed>> $callbacks */
+                public function __construct(array &$callbacks)
+                {
+                    $this->callbacks = &$callbacks;
+                }
+
+                public function pushConsumption($event): array
+                {
+                    return ['statusCode' => 202, 'body' => ''];
+                }
+
+                public function reportOrchestrationCallback($request): array
+                {
+                    $this->callbacks[] = $request->toArray();
+
+                    return ['statusCode' => 202, 'body' => ''];
+                }
+            },
+            new InMemoryLifecycleStore(),
+            new class implements DeferredCreateInstanceDispatcherInterface {
+                public function dispatch(OrchestrationCommand $command): void
+                {
+                }
+            },
+        );
+
+        $result = $processor->process($command);
+
+        self::assertSame(400, $result['httpStatus']);
+        self::assertCount(1, $callbacks);
+        self::assertSame('FAILED', $callbacks[0]['status'] ?? null);
     }
 
     public function testDeferredCreateInstanceDoesNotCallbackOnProcess(): void
@@ -80,6 +149,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
 
         self::assertCount(1, $callbacks);
         self::assertSame('https://tenant.example/login', $callbacks[0]['location'] ?? null);
+        self::assertSame('2026-06-26T10:05:00+00:00', $callbacks[0]['startedAt'] ?? null);
         self::assertSame('SUCCEEDED', $callbacks[0]['status'] ?? null);
     }
 
@@ -240,7 +310,10 @@ final class OrchestrationCommandProcessorTest extends TestCase
             new class implements CreateInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): CreateInstanceHandlerResult
                 {
-                    return new CreateInstanceHandlerResult('https://tenant.example/login');
+                    return new CreateInstanceHandlerResult(
+                        'https://tenant.example/login',
+                        '2026-06-26T10:05:00+00:00',
+                    );
                 }
             },
             new class implements StopInstanceHandlerInterface {

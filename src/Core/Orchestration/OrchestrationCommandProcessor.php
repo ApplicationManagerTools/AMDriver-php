@@ -84,6 +84,7 @@ final class OrchestrationCommandProcessor
         try {
             if ($command->operation()->isCreate()) {
                 $createResult = $this->createHandler->handle($command);
+                $this->assertCreateInstanceStartedAt($createResult);
             } elseif ($command->operation()->isStop()) {
                 $this->stopHandler->handle($command);
             } elseif ($command->operation()->isStart()) {
@@ -117,6 +118,7 @@ final class OrchestrationCommandProcessor
             CallbackStatus::succeeded(),
             null,
             $createResult instanceof CreateInstanceHandlerResult ? $createResult->instanceLocation() : null,
+            $createResult instanceof CreateInstanceHandlerResult ? $createResult->startedAt() : null,
         );
 
         return ['httpStatus' => 200, 'alreadyProcessed' => false];
@@ -126,12 +128,14 @@ final class OrchestrationCommandProcessor
     {
         try {
             $createResult = $this->createHandler->handle($command);
+            $this->assertCreateInstanceStartedAt($createResult);
             $this->idempotencyStore->remember($command->idempotencyKey());
             $this->reportCallback(
                 $command,
                 CallbackStatus::succeeded(),
                 null,
                 $createResult->instanceLocation(),
+                $createResult->startedAt(),
             );
         } catch (HandlerFailedException $e) {
             $this->reportCallback($command, $e->callbackStatus(), $e->getMessage());
@@ -176,10 +180,19 @@ final class OrchestrationCommandProcessor
         OrchestrationCommand $command,
         CallbackStatus $status,
         ?string $message,
-        ?string $location = null
+        ?string $location = null,
+        ?string $startedAt = null
     ): void {
         $this->amApiClient->reportOrchestrationCallback(
-            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message, $location),
+            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message, $location, $startedAt),
         );
+    }
+
+    private function assertCreateInstanceStartedAt(CreateInstanceHandlerResult $createResult): void
+    {
+        $startedAt = $createResult->startedAt();
+        if (null === $startedAt || '' === trim($startedAt)) {
+            throw new ValidationException('CREATE_INSTANCE success requires startedAt from handler');
+        }
     }
 }

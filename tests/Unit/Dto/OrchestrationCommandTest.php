@@ -172,4 +172,48 @@ final class OrchestrationCommandTest extends TestCase
         self::assertSame($metadata, $command->metadata());
         self::assertSame($metadata, $command->toArray()['metadata']);
     }
+
+    public function testFromArrayStopInstanceWithStateView(): void
+    {
+        // Arrange
+        $stateView = [
+            'state' => 'started',
+            'name' => 'Campus 26',
+            'instanceId' => 'am_ins_10000000-0000-4000-8000-000000000001',
+            'resources' => ['Mo' => ['limit' => 100, 'actual' => 0, 'remaining' => 100]],
+        ];
+        $data = $this->basePayload(Operation::STOP_INSTANCE) + ['stateView' => $stateView];
+
+        // Act
+        $command = OrchestrationCommand::fromArray($data);
+
+        // Assert
+        self::assertSame($stateView, $command->stateView());
+        self::assertSame($stateView, $command->toArray()['stateView']);
+    }
+
+    public function testFromArrayCreateInstanceWithStateView(): void
+    {
+        // Arrange
+        $stateView = ['state' => 'pending', 'name' => 'Campus 26'];
+        $data = $this->basePayload() + ['stateView' => $stateView, 'metadata' => []];
+
+        // Act
+        $command = OrchestrationCommand::fromArray($data);
+
+        // Assert
+        self::assertSame($stateView, $command->stateView());
+    }
+
+    public function testFromArrayRejectsInvalidStateViewType(): void
+    {
+        // Arrange
+        $data = $this->basePayload(Operation::STOP_INSTANCE) + ['stateView' => 'invalid'];
+
+        // Act
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessage('stateView');
+
+        OrchestrationCommand::fromArray($data);
+    }
 }

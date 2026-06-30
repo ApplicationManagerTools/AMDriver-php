@@ -68,4 +68,35 @@ final class OrchestrationCallbackRequestTest extends TestCase
             'location' => 'not-a-uri',
         ]);
     }
+
+    public function testToArrayIncludesStartedAtWhenSet(): void
+    {
+        // Arrange
+        $request = new OrchestrationCallbackRequest(
+            'idem-1',
+            CallbackStatus::succeeded(),
+            null,
+            'https://tenant.example/login',
+            '2026-06-26T10:05:00+00:00',
+        );
+
+        // Act
+        $array = $request->toArray();
+
+        // Assert
+        self::assertSame('2026-06-26T10:05:00+00:00', $array['startedAt']);
+    }
+
+    public function testFromArrayAcceptsStartedAt(): void
+    {
+        // Arrange
+        $request = OrchestrationCallbackRequest::fromArray([
+            'idempotencyKey' => 'idem-1',
+            'status' => 'SUCCEEDED',
+            'startedAt' => '2026-06-26T10:05:00+00:00',
+        ]);
+
+        // Assert
+        self::assertSame('2026-06-26T10:05:00+00:00', $request->startedAt());
+    }
 }
