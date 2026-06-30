@@ -7,6 +7,8 @@ namespace ApplicationManagerTools\AmDriver\Core\Cli\InMemory;
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
+use DateTimeImmutable;
+use DateTimeZone;
 
 final class LoggingCreateInstanceHandler implements CreateInstanceHandlerInterface
 {
@@ -22,6 +24,6 @@ final class LoggingCreateInstanceHandler implements CreateInstanceHandlerInterfa
     {
         $this->log->add('CREATE_INSTANCE', $command);
 
-        return new CreateInstanceHandlerResult();
+        return new CreateInstanceHandlerResult(null, (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(\DATE_ATOM));
     }
 }

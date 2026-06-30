@@ -40,8 +40,12 @@ final class OrchestrationCommand
     /** @var array<string, mixed> */
     private $metadata;
 
+    /** @var array<string, mixed> */
+    private $stateView;
+
     /**
      * @param array<string, mixed> $metadata
+     * @param array<string, mixed> $stateView
      */
     public function __construct(
         Operation $operation,
@@ -52,7 +56,8 @@ final class OrchestrationCommand
         ?string $correlationId = null,
         ?string $name = null,
         ?string $credentialsLogin = null,
-        array $metadata = []
+        array $metadata = [],
+        array $stateView = []
     ) {
         $this->operation = $operation;
         $this->appId = $appId;
@@ -63,6 +68,7 @@ final class OrchestrationCommand
         $this->name = $name;
         $this->credentialsLogin = $credentialsLogin;
         $this->metadata = $metadata;
+        $this->stateView = $stateView;
     }
 
     /**
@@ -103,6 +109,7 @@ final class OrchestrationCommand
             $name,
             $credentialsLogin,
             $metadata,
+            self::parseStateView($data),
         );
     }
 
@@ -157,6 +164,14 @@ final class OrchestrationCommand
     /**
      * @return array<string, mixed>
      */
+    public function stateView(): array
+    {
+        return $this->stateView;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function toArray(): array
     {
         $payload = [
@@ -177,6 +192,9 @@ final class OrchestrationCommand
                 $payload['credentials'] = ['login' => $this->credentialsLogin];
             }
             $payload['metadata'] = $this->metadata;
+        }
+        if ([] !== $this->stateView) {
+            $payload['stateView'] = $this->stateView;
         }
 
         return $payload;
@@ -263,5 +281,22 @@ final class OrchestrationCommand
         }
 
         return $data['metadata'];
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    private static function parseStateView(array $data): array
+    {
+        if (!\array_key_exists('stateView', $data)) {
+            return [];
+        }
+        if (!\is_array($data['stateView'])) {
+            throw new ValidationException('Field stateView must be an object');
+        }
+
+        return $data['stateView'];
     }
 }

@@ -9,13 +9,22 @@ final class CreateInstanceHandlerResult
     /** @var string|null */
     private $instanceLocation;
 
-    public function __construct(?string $instanceLocation = null)
+    /** @var string|null */
+    private $startedAt;
+
+    public function __construct(?string $instanceLocation = null, ?string $startedAt = null)
     {
         $this->instanceLocation = $instanceLocation;
+        $this->startedAt = $startedAt;
     }
 
     public function instanceLocation(): ?string
     {
         return $this->instanceLocation;
+    }
+
+    public function startedAt(): ?string
+    {
+        return $this->startedAt;
     }
 }

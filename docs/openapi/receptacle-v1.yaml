@@ -365,6 +365,12 @@ components:
               type: string
               description: Nom de la formule au moment de la souscription.
               example: Pro
+        stateView:
+          type: object
+          description: >
+            Vue instance optionnelle (formule, ressources, dates…). Objet libre ;
+            accepté sur toutes les opérations.
+          additionalProperties: true
 
     InstanceOperationalState:
       type: object

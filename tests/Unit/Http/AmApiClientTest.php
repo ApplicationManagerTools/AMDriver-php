@@ -76,6 +76,29 @@ final class AmApiClientTest extends TestCase
         self::assertSame('https://tenant.example/login', $json['location'] ?? null);
     }
 
+    public function testReportCallbackSerializesStartedAtInJsonBody(): void
+    {
+        // Arrange
+        $recording = new RecordingHttpClient();
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
+
+        // Act
+        $api->reportOrchestrationCallback(new OrchestrationCallbackRequest(
+            'idem-key',
+            CallbackStatus::succeeded(),
+            null,
+            'https://tenant.example/login',
+            '2026-06-26T10:05:00+00:00',
+        ));
+
+        // Assert
+        $body = $recording->options['body'] ?? null;
+        self::assertIsString($body);
+        /** @var array<string, mixed> $json */
+        $json = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame('2026-06-26T10:05:00+00:00', $json['startedAt'] ?? null);
+    }
+
     /**
      * @param array<string, mixed> $options
      */
