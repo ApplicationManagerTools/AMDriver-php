@@ -6,7 +6,6 @@ namespace ApplicationManagerTools\AmDriver\Core\Dto;
 
 use ApplicationManagerTools\AmDriver\Core\Orchestration\CallbackStatus;
 use ApplicationManagerTools\AmDriver\Core\Validation\JsonPayloadValidator;
-use InvalidArgumentException;
 
 final class OrchestrationCallbackRequest
 {
@@ -19,24 +18,23 @@ final class OrchestrationCallbackRequest
     /** @var string|null */
     private $message;
 
-    /** @var string|null */
-    private $location;
+    /** @var array<string, mixed> */
+    private $extra;
 
-    /** @var string|null */
-    private $startedAt;
-
+    /**
+     * @param array<string, mixed> $extra données métier libres (ex. issues de CreateInstanceHandlerResult::toArray()),
+     *                                    dont le bundle ignore la sémantique
+     */
     public function __construct(
         string $idempotencyKey,
         CallbackStatus $status,
         ?string $message = null,
-        ?string $location = null,
-        ?string $startedAt = null
+        array $extra = []
     ) {
         $this->idempotencyKey = $idempotencyKey;
         $this->status = $status;
         $this->message = $message;
-        $this->location = $location;
-        $this->startedAt = $startedAt;
+        $this->extra = $extra;
     }
 
     /**
@@ -49,36 +47,15 @@ final class OrchestrationCallbackRequest
         JsonPayloadValidator::requireNonEmptyString($data, 'status');
 
         $message = isset($data['message']) && \is_string($data['message']) ? $data['message'] : null;
-        $location = null;
-        if (\array_key_exists('location', $data)) {
-            if (null !== $data['location'] && !\is_string($data['location'])) {
-                throw new InvalidArgumentException('location must be a string URI or null.');
-            }
-            if (\is_string($data['location']) && '' !== $data['location']) {
-                if (false === filter_var($data['location'], FILTER_VALIDATE_URL)) {
-                    throw new InvalidArgumentException('location must be a valid URI.');
-                }
-                $location = $data['location'];
-            }
-        }
 
-        $startedAt = null;
-        if (\array_key_exists('startedAt', $data)) {
-            if (!\is_string($data['startedAt'])) {
-                throw new InvalidArgumentException('startedAt must be a non-empty string.');
-            }
-            $trimmedStartedAt = trim($data['startedAt']);
-            if ('' !== $trimmedStartedAt) {
-                $startedAt = $trimmedStartedAt;
-            }
-        }
+        $extra = $data;
+        unset($extra['idempotencyKey'], $extra['status'], $extra['message']);
 
         return new self(
             (string) $data['idempotencyKey'],
             CallbackStatus::fromString((string) $data['status']),
             $message,
-            $location,
-            $startedAt,
+            $extra,
         );
     }
 
@@ -97,14 +74,12 @@ final class OrchestrationCallbackRequest
         return $this->message;
     }
 
-    public function location(): ?string
+    /**
+     * @return array<string, mixed>
+     */
+    public function extra(): array
     {
-        return $this->location;
-    }
-
-    public function startedAt(): ?string
-    {
-        return $this->startedAt;
+        return $this->extra;
     }
 
     /**
@@ -112,18 +87,15 @@ final class OrchestrationCallbackRequest
      */
     public function toArray(): array
     {
-        $payload = [
-            'idempotencyKey' => $this->idempotencyKey,
-            'status' => $this->status->toString(),
-        ];
+        // Les champs invariants du bundle sont posés en dernier : un hôte ne peut
+        // jamais les écraser, même s'il fournit par erreur une clé de même nom dans $extra.
+        $payload = $this->extra;
+        $payload['idempotencyKey'] = $this->idempotencyKey;
+        $payload['status'] = $this->status->toString();
         if (null !== $this->message) {
             $payload['message'] = $this->message;
-        }
-        if (null !== $this->location) {
-            $payload['location'] = $this->location;
-        }
-        if (null !== $this->startedAt) {
-            $payload['startedAt'] = $this->startedAt;
+        } else {
+            unset($payload['message']);
         }
 
         return $payload;

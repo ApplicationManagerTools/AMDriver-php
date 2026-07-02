@@ -109,6 +109,8 @@ paths:
                   idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
                   status: SUCCEEDED
                   location: https://tenant.example/login
+                  startedAt: '2026-06-26T10:05:00+00:00'
+                  integrationInstanceId: cl_demo_67mzxiq
               failed:
                 value:
                   idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:create_instance:v1
@@ -164,6 +166,12 @@ components:
 
     OrchestrationCommandCallbackRequest:
       type: object
+      description: >
+        Contrat HTTP côté Application Manager (inchangé par le refactor bundle 0.0.16).
+        Le bundle am-driver relaie désormais tel quel tout champ métier fourni par
+        l'application hôte (CreateInstanceHandlerResult::fromArray) ; des propriétés
+        additionnelles non listées ci-dessous peuvent donc être présentes dans le
+        corps JSON et sont ignorées par AM tant que son propre contrat n'évolue pas.
       required:
         - idempotencyKey
         - status
@@ -189,4 +197,11 @@ components:
           format: date-time
           description: >
             Horodatage de mise en service côté app gérée.
-            Obligatoire sur CREATE_INSTANCE SUCCEEDED.
+            Obligatoire côté bundle (CreateInstanceHandlerResult::fromArray) sur CREATE_INSTANCE SUCCEEDED ;
+            non encore consommé par AM.
+        integrationInstanceId:
+          type: string
+          description: >
+            Identifiant de l'instance côté application hôte (ex. tenantId Captain Learning).
+            Obligatoire côté bundle (CreateInstanceHandlerResult::fromArray) sur CREATE_INSTANCE SUCCEEDED ;
+            non encore consommé par AM (contrat AM inchangé, hors périmètre de ce refactor).

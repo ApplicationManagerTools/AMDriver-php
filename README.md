@@ -86,10 +86,18 @@ final class MyCreateInstanceHandler implements CreateInstanceHandlerInterface
     public function handle(OrchestrationCommand $command): CreateInstanceHandlerResult
     {
         // provision tenant / DB / storage
-        return new CreateInstanceHandlerResult('https://tenant.example/login');
+        return CreateInstanceHandlerResult::fromArray([
+            'startedAt' => (new \DateTimeImmutable())->format(\DATE_ATOM), // required
+            'integrationInstanceId' => $tenantId, // required
+            'location' => 'https://tenant.example/login', // free-form: any other key is relayed as-is to AM
+        ]);
     }
 }
 ```
+
+`CreateInstanceHandlerResult::fromArray()` requires two non-empty keys: `startedAt` and
+`integrationInstanceId`. Every other key you provide (`location`, ...) is opaque to the bundle: it
+is relayed verbatim in the JSON body of the callback POSTed to Application Manager.
 
 Register services with Symfony autoconfigure, or explicit tags in `services.yaml`.
 

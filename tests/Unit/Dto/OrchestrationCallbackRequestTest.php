@@ -6,12 +6,11 @@ namespace ApplicationManagerTools\AmDriver\Tests\Unit\Dto;
 
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCallbackRequest;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\CallbackStatus;
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class OrchestrationCallbackRequestTest extends TestCase
 {
-    public function testToArrayOmitsLocationWhenNull(): void
+    public function testToArrayContainsOnlyIdempotencyKeyAndStatusWhenNoExtra(): void
     {
         // Arrange
         $request = new OrchestrationCallbackRequest('idem-1', CallbackStatus::succeeded());
@@ -20,17 +19,17 @@ final class OrchestrationCallbackRequestTest extends TestCase
         $array = $request->toArray();
 
         // Assert
-        self::assertArrayNotHasKey('location', $array);
+        self::assertSame(['idempotencyKey' => 'idem-1', 'status' => 'SUCCEEDED'], $array);
     }
 
-    public function testToArrayIncludesLocationWhenSet(): void
+    public function testToArrayIncludesArbitraryExtraFieldsUnknownToTheBundle(): void
     {
-        // Arrange
+        // Arrange — le bundle ne connaît ni "location" ni "integrationInstanceId", il les relaie tels quels
         $request = new OrchestrationCallbackRequest(
             'idem-1',
             CallbackStatus::succeeded(),
             null,
-            'https://tenant.example/login',
+            ['location' => 'https://tenant.example/login', 'integrationInstanceId' => 'cl_demo_67mzxiq'],
         );
 
         // Act
@@ -38,65 +37,66 @@ final class OrchestrationCallbackRequestTest extends TestCase
 
         // Assert
         self::assertSame('https://tenant.example/login', $array['location']);
+        self::assertSame('cl_demo_67mzxiq', $array['integrationInstanceId']);
     }
 
-    public function testFromArrayAcceptsOptionalLocation(): void
+    public function testToArrayIncludesMessageWhenSet(): void
     {
         // Arrange
-        $data = [
-            'idempotencyKey' => 'idem-1',
-            'status' => 'SUCCEEDED',
-            'location' => 'https://tenant.example/login',
-        ];
+        $request = new OrchestrationCallbackRequest('idem-1', CallbackStatus::failed(), 'Provisioning failed');
 
         // Act
-        $request = OrchestrationCallbackRequest::fromArray($data);
+        $array = $request->toArray();
 
         // Assert
-        self::assertSame('https://tenant.example/login', $request->location());
+        self::assertSame('Provisioning failed', $array['message']);
     }
 
-    public function testFromArrayRejectsInvalidLocationUri(): void
+    public function testToArrayInvariantFieldsCannotBeOverriddenByExtra(): void
     {
-        // Arrange
-        $this->expectException(InvalidArgumentException::class);
-
-        // Act
-        OrchestrationCallbackRequest::fromArray([
-            'idempotencyKey' => 'idem-1',
-            'status' => 'SUCCEEDED',
-            'location' => 'not-a-uri',
-        ]);
-    }
-
-    public function testToArrayIncludesStartedAtWhenSet(): void
-    {
-        // Arrange
+        // Arrange — un hôte maladroit fournit des clés réservées dans extra : elles ne doivent pas écraser l'enveloppe
         $request = new OrchestrationCallbackRequest(
             'idem-1',
             CallbackStatus::succeeded(),
             null,
-            'https://tenant.example/login',
-            '2026-06-26T10:05:00+00:00',
+            ['idempotencyKey' => 'hacked', 'status' => 'HACKED'],
         );
 
         // Act
         $array = $request->toArray();
 
         // Assert
-        self::assertSame('2026-06-26T10:05:00+00:00', $array['startedAt']);
+        self::assertSame('idem-1', $array['idempotencyKey']);
+        self::assertSame('SUCCEEDED', $array['status']);
     }
 
-    public function testFromArrayAcceptsStartedAt(): void
+    public function testFromArrayParsesIdempotencyKeyAndStatus(): void
     {
         // Arrange
-        $request = OrchestrationCallbackRequest::fromArray([
-            'idempotencyKey' => 'idem-1',
-            'status' => 'SUCCEEDED',
-            'startedAt' => '2026-06-26T10:05:00+00:00',
-        ]);
+        $data = ['idempotencyKey' => 'idem-1', 'status' => 'SUCCEEDED'];
+
+        // Act
+        $request = OrchestrationCallbackRequest::fromArray($data);
 
         // Assert
-        self::assertSame('2026-06-26T10:05:00+00:00', $request->startedAt());
+        self::assertSame('idem-1', $request->idempotencyKey());
+        self::assertSame(CallbackStatus::succeeded()->toString(), $request->status()->toString());
+    }
+
+    public function testFromArrayCollectsUnknownFieldsAsExtraWithoutValidatingThem(): void
+    {
+        // Arrange
+        $data = [
+            'idempotencyKey' => 'idem-1',
+            'status' => 'SUCCEEDED',
+            'location' => 'not-a-uri',
+            'integrationInstanceId' => 'cl_demo_67mzxiq',
+        ];
+
+        // Act
+        $request = OrchestrationCallbackRequest::fromArray($data);
+
+        // Assert
+        self::assertSame(['location' => 'not-a-uri', 'integrationInstanceId' => 'cl_demo_67mzxiq'], $request->extra());
     }
 }
