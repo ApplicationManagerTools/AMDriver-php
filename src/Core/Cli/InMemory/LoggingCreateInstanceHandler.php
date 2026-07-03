@@ -24,6 +24,9 @@ final class LoggingCreateInstanceHandler implements CreateInstanceHandlerInterfa
     {
         $this->log->add('CREATE_INSTANCE', $command);
 
-        return new CreateInstanceHandlerResult(null, (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(\DATE_ATOM));
+        return CreateInstanceHandlerResult::fromArray([
+            'startedAt' => (new DateTimeImmutable('now', new DateTimeZone('UTC')))->format(\DATE_ATOM),
+            'integrationInstanceId' => $command->instanceId(),
+        ]);
     }
 }

@@ -96,6 +96,12 @@ Consommation : un POST AM par `resourceKey` ; `lastPushedToAm` mis à jour seule
 
 Callbacks : envoyés après issue handler (succès → `SUCCEEDED`, échec métier → `FAILED` / `RETRYABLE_FAILURE`).
 
+Contrat du résultat `CreateInstanceHandlerInterface::handle()` (`CreateInstanceHandlerResult::fromArray()`, depuis 0.0.16) :
+`startedAt` (horodatage non vide) et `integrationInstanceId` (identifiant non vide côté app hôte) sont requis et connus
+du bundle ; toute autre clé fournie par l'hôte (`location`, ...) est relayée telle quelle dans le JSON du callback,
+sans validation ni interprétation par le bundle. Voir [README.md](../README.md) (section « Symfony quickstart ») pour
+l'exemple de handler.
+
 ### CREATE_INSTANCE en mode `deferred`
 
 ```yaml

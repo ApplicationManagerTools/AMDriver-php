@@ -84,7 +84,6 @@ final class OrchestrationCommandProcessor
         try {
             if ($command->operation()->isCreate()) {
                 $createResult = $this->createHandler->handle($command);
-                $this->assertCreateInstanceStartedAt($createResult);
             } elseif ($command->operation()->isStop()) {
                 $this->stopHandler->handle($command);
             } elseif ($command->operation()->isStart()) {
@@ -117,8 +116,7 @@ final class OrchestrationCommandProcessor
             $command,
             CallbackStatus::succeeded(),
             null,
-            $createResult instanceof CreateInstanceHandlerResult ? $createResult->instanceLocation() : null,
-            $createResult instanceof CreateInstanceHandlerResult ? $createResult->startedAt() : null,
+            $createResult instanceof CreateInstanceHandlerResult ? $createResult->toArray() : [],
         );
 
         return ['httpStatus' => 200, 'alreadyProcessed' => false];
@@ -128,14 +126,12 @@ final class OrchestrationCommandProcessor
     {
         try {
             $createResult = $this->createHandler->handle($command);
-            $this->assertCreateInstanceStartedAt($createResult);
             $this->idempotencyStore->remember($command->idempotencyKey());
             $this->reportCallback(
                 $command,
                 CallbackStatus::succeeded(),
                 null,
-                $createResult->instanceLocation(),
-                $createResult->startedAt(),
+                $createResult->toArray(),
             );
         } catch (HandlerFailedException $e) {
             $this->reportCallback($command, $e->callbackStatus(), $e->getMessage());
@@ -176,23 +172,18 @@ final class OrchestrationCommandProcessor
         return ['httpStatus' => 200, 'alreadyProcessed' => false];
     }
 
+    /**
+     * @param array<string, mixed> $resultData données métier libres issues de CreateInstanceHandlerResult::toArray(),
+     *                                         transportées telles quelles vers Application Manager
+     */
     private function reportCallback(
         OrchestrationCommand $command,
         CallbackStatus $status,
         ?string $message,
-        ?string $location = null,
-        ?string $startedAt = null
+        array $resultData = []
     ): void {
         $this->amApiClient->reportOrchestrationCallback(
-            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message, $location, $startedAt),
+            new OrchestrationCallbackRequest($command->idempotencyKey(), $status, $message, $resultData),
         );
-    }
-
-    private function assertCreateInstanceStartedAt(CreateInstanceHandlerResult $createResult): void
-    {
-        $startedAt = $createResult->startedAt();
-        if (null === $startedAt || '' === trim($startedAt)) {
-            throw new ValidationException('CREATE_INSTANCE success requires startedAt from handler');
-        }
     }
 }

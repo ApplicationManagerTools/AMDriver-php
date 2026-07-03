@@ -65,7 +65,7 @@ final class AmApiClientTest extends TestCase
             'idem-key',
             CallbackStatus::succeeded(),
             null,
-            'https://tenant.example/login',
+            ['location' => 'https://tenant.example/login'],
         ));
 
         // Assert
@@ -76,9 +76,9 @@ final class AmApiClientTest extends TestCase
         self::assertSame('https://tenant.example/login', $json['location'] ?? null);
     }
 
-    public function testReportCallbackSerializesStartedAtInJsonBody(): void
+    public function testReportCallbackSerializesArbitraryExtraFieldInJsonBody(): void
     {
-        // Arrange
+        // Arrange — le bundle ne connaît pas "integrationInstanceId" mais doit le sérialiser tel quel
         $recording = new RecordingHttpClient();
         $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
 
@@ -87,8 +87,7 @@ final class AmApiClientTest extends TestCase
             'idem-key',
             CallbackStatus::succeeded(),
             null,
-            'https://tenant.example/login',
-            '2026-06-26T10:05:00+00:00',
+            ['location' => 'https://tenant.example/login', 'startedAt' => '2026-06-26T10:05:00+00:00', 'integrationInstanceId' => 'cl_demo_67mzxiq'],
         ));
 
         // Assert
@@ -97,6 +96,7 @@ final class AmApiClientTest extends TestCase
         /** @var array<string, mixed> $json */
         $json = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         self::assertSame('2026-06-26T10:05:00+00:00', $json['startedAt'] ?? null);
+        self::assertSame('cl_demo_67mzxiq', $json['integrationInstanceId'] ?? null);
     }
 
     /**

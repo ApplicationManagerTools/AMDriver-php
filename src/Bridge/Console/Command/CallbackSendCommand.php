@@ -46,11 +46,16 @@ final class CallbackSendCommand extends Command
             (string) $input->getOption('token'),
         ));
 
+        $extra = [];
+        if ($input->getOption('location')) {
+            $extra['location'] = (string) $input->getOption('location');
+        }
+
         $request = new OrchestrationCallbackRequest(
             (string) $input->getOption('idempotency-key'),
             CallbackStatus::fromString((string) $input->getOption('status')),
             $input->getOption('message') ? (string) $input->getOption('message') : null,
-            $input->getOption('location') ? (string) $input->getOption('location') : null,
+            $extra,
         );
 
         $response = $client->reportOrchestrationCallback($request);
