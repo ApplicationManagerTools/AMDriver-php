@@ -47,7 +47,7 @@ final class OrchestrationCommandController
             }
             $result = $this->processor->process($command, $queryParams);
 
-            if (isset($result['body']) && \is_array($result['body'])) {
+            if (isset($result['body'])) {
                 return new JsonResponse($result['body'], $result['httpStatus']);
             }
 

@@ -18,7 +18,10 @@ use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProc
 use ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader;
 use ApplicationManagerTools\AmDriver\Core\StateView\FileStateViewWriter;
 use ApplicationManagerTools\AmDriver\Core\StateView\RelativeInstanceDataDirectoryResolver;
+use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 final class SyncStateViewOperationsTest extends TestCase
 {
@@ -203,9 +206,9 @@ final class SyncStateViewOperationsTest extends TestCase
         if (!is_dir($path)) {
             return;
         }
-        $items = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
+        $items = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
         );
         foreach ($items as $item) {
             $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());

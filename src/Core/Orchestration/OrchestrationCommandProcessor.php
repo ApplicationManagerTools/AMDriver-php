@@ -182,15 +182,15 @@ final class OrchestrationCommandProcessor
      */
     private function processGetInfo(OrchestrationCommand $command, array $queryParams): array
     {
-        $this->assertSyncDepsConfigured();
+        $deps = $this->requireSyncDeps();
 
         try {
-            $dataDir = $this->instanceDataDirectoryResolver->resolve($command->instanceId(), $queryParams);
+            $dataDir = $deps['resolver']->resolve($command->instanceId(), $queryParams);
         } catch (InstanceDataDirectoryNotFoundException $e) {
             return ['httpStatus' => 404, 'body' => ['error' => $e->getMessage()]];
         }
 
-        $resources = $this->actualResourcesReader->read($dataDir);
+        $resources = $deps['reader']->read($dataDir);
 
         return ['httpStatus' => 200, 'body' => ['resources' => $resources]];
     }
@@ -202,20 +202,20 @@ final class OrchestrationCommandProcessor
      */
     private function processSetStateView(OrchestrationCommand $command, array $queryParams): array
     {
-        $this->assertSyncDepsConfigured();
+        $deps = $this->requireSyncDeps();
 
         if ([] === $command->stateView()) {
             return ['httpStatus' => 400, 'body' => ['error' => 'SET_STATEVIEW_INSTANCE requires a non-empty stateView']];
         }
 
         try {
-            $dataDir = $this->instanceDataDirectoryResolver->resolve($command->instanceId(), $queryParams);
+            $dataDir = $deps['resolver']->resolve($command->instanceId(), $queryParams);
         } catch (InstanceDataDirectoryNotFoundException $e) {
             return ['httpStatus' => 404, 'body' => ['error' => $e->getMessage()]];
         }
 
         try {
-            $this->stateViewWriter->write($dataDir, $command->stateView());
+            $deps['writer']->write($dataDir, $command->stateView());
         } catch (Throwable $e) {
             return ['httpStatus' => 500, 'body' => ['error' => $e->getMessage()]];
         }
@@ -223,17 +223,28 @@ final class OrchestrationCommandProcessor
         return ['httpStatus' => 200, 'body' => ['updated' => true]];
     }
 
-    private function assertSyncDepsConfigured(): void
+    /**
+     * @return array{
+     *   resolver: InstanceDataDirectoryResolverInterface,
+     *   reader: ActualResourcesConsumptionReaderInterface,
+     *   writer: StateViewWriterInterface
+     * }
+     */
+    private function requireSyncDeps(): array
     {
         if (
             null === $this->instanceDataDirectoryResolver
             || null === $this->actualResourcesReader
             || null === $this->stateViewWriter
         ) {
-            throw new ValidationException(
-                'GET_INFO_INSTANCE / SET_STATEVIEW_INSTANCE require instance data directory configuration',
-            );
+            throw new ValidationException('GET_INFO_INSTANCE / SET_STATEVIEW_INSTANCE require instance data directory configuration');
         }
+
+        return [
+            'resolver' => $this->instanceDataDirectoryResolver,
+            'reader' => $this->actualResourcesReader,
+            'writer' => $this->stateViewWriter,
+        ];
     }
 
     /**

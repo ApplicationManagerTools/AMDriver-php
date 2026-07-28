@@ -88,7 +88,7 @@ final class ReceptacleHttpKernel
             $queryParams = $this->queryParamsFromUri($uri);
             $result = $this->orchestrationProcessor->process($command, $queryParams);
 
-            if (isset($result['body']) && \is_array($result['body'])) {
+            if (isset($result['body'])) {
                 return [$result['httpStatus'], json_encode($result['body'], JSON_THROW_ON_ERROR)];
             }
 

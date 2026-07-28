@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ApplicationManagerTools\AmDriver\Core\StateView;
 
 use ApplicationManagerTools\AmDriver\Core\Contract\ActualResourcesConsumptionReaderInterface;
+use JsonException;
 
 final class FileActualResourcesConsumptionReader implements ActualResourcesConsumptionReaderInterface
 {
@@ -22,7 +23,7 @@ final class FileActualResourcesConsumptionReader implements ActualResourcesConsu
 
         try {
             $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-        } catch (\JsonException $e) {
+        } catch (JsonException $e) {
             return [];
         }
 

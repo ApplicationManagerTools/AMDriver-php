@@ -38,10 +38,7 @@ final class RelativeInstanceDataDirectoryResolver implements InstanceDataDirecto
 
         $path = $this->tenantsRoot.'/'.$folder;
         if (!is_dir($path)) {
-            throw new InstanceDataDirectoryNotFoundException(sprintf(
-                'Instance data directory not found: %s',
-                $path,
-            ));
+            throw new InstanceDataDirectoryNotFoundException(sprintf('Instance data directory not found: %s', $path));
         }
 
         return $path;
