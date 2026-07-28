@@ -57,7 +57,7 @@ final class ReceptacleHttpKernel
 
         if ('POST' === $method) {
             if ($path === $this->orchestrationPath) {
-                return $this->handleOrchestration($uri, $body, $headers);
+                return $this->handleOrchestration($body, $headers);
             }
 
             if ($path === $this->operationalStatePath) {
@@ -77,7 +77,7 @@ final class ReceptacleHttpKernel
      *
      * @return array{0: int, 1: string}
      */
-    private function handleOrchestration(string $uri, string $body, array $headers): array
+    private function handleOrchestration(string $body, array $headers): array
     {
         if (!$this->authenticator->matchesHeaderMap($headers)) {
             return [401, json_encode(['error' => 'Invalid token'], JSON_THROW_ON_ERROR)];
@@ -85,8 +85,7 @@ final class ReceptacleHttpKernel
 
         try {
             $command = OrchestrationCommand::fromArray(JsonPayloadValidator::parseJsonObject($body));
-            $queryParams = $this->queryParamsFromUri($uri);
-            $result = $this->orchestrationProcessor->process($command, $queryParams);
+            $result = $this->orchestrationProcessor->process($command);
 
             if (isset($result['body'])) {
                 return [$result['httpStatus'], json_encode($result['body'], JSON_THROW_ON_ERROR)];
@@ -102,26 +101,6 @@ final class ReceptacleHttpKernel
         } catch (ValidationException $e) {
             return [400, json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)];
         }
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function queryParamsFromUri(string $uri): array
-    {
-        $query = parse_url($uri, PHP_URL_QUERY);
-        if (!\is_string($query) || '' === $query) {
-            return [];
-        }
-        $params = [];
-        parse_str($query, $parsed);
-        foreach ($parsed as $key => $value) {
-            if (\is_string($key) && \is_string($value)) {
-                $params[$key] = $value;
-            }
-        }
-
-        return $params;
     }
 
     /**

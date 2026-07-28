@@ -7,6 +7,8 @@ namespace ApplicationManagerTools\AmDriver\Tests\Integration;
 use ApplicationManagerTools\AmDriver\Bridge\Symfony\DependencyInjection\ReceiverRoutePaths;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\CommandCallLog;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingCreateInstanceHandler;
+use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingGetInfoInstanceHandler;
+use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingSetStateViewInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStartInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStopInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\ReceptacleHttpKernel;
@@ -74,6 +76,8 @@ final class ReceptacleHttpKernelTest extends TestCase
                 new LoggingCreateInstanceHandler($log),
                 new LoggingStopInstanceHandler($log),
                 new LoggingStartInstanceHandler($log),
+                new LoggingGetInfoInstanceHandler($log),
+                new LoggingSetStateViewInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
                 new NoopAmApiClient(),
                 new FileOrchestrationCommandLifecycleStore($dataDir.'/idempotency-in-progress'),

@@ -38,14 +38,7 @@ final class OrchestrationCommandController
         try {
             $payload = JsonPayloadValidator::parseJsonObject((string) $request->getContent());
             $command = OrchestrationCommand::fromArray($payload);
-            /** @var array<string, string> $queryParams */
-            $queryParams = [];
-            foreach ($request->query->all() as $key => $value) {
-                if (\is_string($key) && \is_string($value)) {
-                    $queryParams[$key] = $value;
-                }
-            }
-            $result = $this->processor->process($command, $queryParams);
+            $result = $this->processor->process($command);
 
             if (isset($result['body'])) {
                 return new JsonResponse($result['body'], $result['httpStatus']);

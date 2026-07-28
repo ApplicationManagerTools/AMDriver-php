@@ -13,7 +13,7 @@ Alignement sur le **back AM réel** (`ApplicationManager/ApplicationManager/`) e
 | Réactions domaine | `block_resource`, `stop_instance`, … | Parsing tolérant (pas de validation stricte des hints) |
 | Nombres | `limit` / `consumption.value` souvent en **float** dans le JSON AM | Acceptés string ou number |
 | `DESTROY_INSTANCE` | Émis par AM | **Non implémenté** v1 : HTTP 400 + callback `FAILED` (message explicite) |
-| `GET_INFO_INSTANCE` / `SET_STATEVIEW_INSTANCE` | Sync sortant AM (`am:instance:reconcile-state-view`) | Sync : lit `am-driver/actual_resources_consumption.json` / écrit `am-driver/state_view.json` ; pas de callback ; `idempotencyKey` optionnel |
+| `GET_INFO_INSTANCE` / `SET_STATEVIEW_INSTANCE` | Sync sortant AM (`am:instance:reconcile-state-view`) | Sync via **handlers hôte** (`GetInfoInstanceHandlerInterface` / `SetStateViewInstanceHandlerInterface`) ; pas de callback ; `idempotencyKey` optionnel |
 | Route commandes | Une URL par `targetId` dans `ManagedAppIntegration` sur l’agrégat App (voir ADR0002) | **Une route** POST routée par `operation` (variante cahier § 5) |
 | Paramètres Symfony `am_driver.config.<key>` | Requis par routes/services bundle | Enregistrés par `ConfigurationParameters` à l’activation du bundle |
 | Lecture snapshot externe | — | `ResourceSnapshotStoreInterface::findByInstanceId()` (= `load()`) |

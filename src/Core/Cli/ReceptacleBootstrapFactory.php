@@ -6,6 +6,8 @@ namespace ApplicationManagerTools\AmDriver\Core\Cli;
 
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\CommandCallLog;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingCreateInstanceHandler;
+use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingGetInfoInstanceHandler;
+use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingSetStateViewInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStartInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStopInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Http\NoopAmApiClient;
@@ -18,9 +20,6 @@ use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProc
 use ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager;
-use ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader;
-use ApplicationManagerTools\AmDriver\Core\StateView\FileStateViewWriter;
-use ApplicationManagerTools\AmDriver\Core\StateView\RelativeInstanceDataDirectoryResolver;
 
 final class ReceptacleBootstrapFactory
 {
@@ -43,14 +42,12 @@ final class ReceptacleBootstrapFactory
                 new LoggingCreateInstanceHandler($log),
                 new LoggingStopInstanceHandler($log),
                 new LoggingStartInstanceHandler($log),
+                new LoggingGetInfoInstanceHandler($log),
+                new LoggingSetStateViewInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
                 new NoopAmApiClient(),
                 new FileOrchestrationCommandLifecycleStore($dataDir.'/idempotency-in-progress'),
                 new UnconfiguredDeferredCreateInstanceDispatcher(),
-                OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC,
-                new RelativeInstanceDataDirectoryResolver($dataDir.'/tenants'),
-                new FileActualResourcesConsumptionReader(),
-                new FileStateViewWriter(),
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),
