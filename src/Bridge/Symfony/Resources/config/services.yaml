@@ -73,6 +73,23 @@ services:
             $lifecycleStore: '@ApplicationManagerTools\AmDriver\Core\Idempotency\OrchestrationCommandLifecycleStoreInterface'
             $deferredDispatcher: '@ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface'
             $createInstanceExecution: '%am_driver.config.create_instance_execution%'
+            $instanceDataDirectoryResolver: '@ApplicationManagerTools\AmDriver\Core\Contract\InstanceDataDirectoryResolverInterface'
+            $actualResourcesReader: '@ApplicationManagerTools\AmDriver\Core\Contract\ActualResourcesConsumptionReaderInterface'
+            $stateViewWriter: '@ApplicationManagerTools\AmDriver\Core\Contract\StateViewWriterInterface'
+
+    ApplicationManagerTools\AmDriver\Core\Contract\ActualResourcesConsumptionReaderInterface:
+        alias: ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader
+
+    ApplicationManagerTools\AmDriver\Core\Contract\StateViewWriterInterface:
+        alias: ApplicationManagerTools\AmDriver\Core\StateView\FileStateViewWriter
+
+    ApplicationManagerTools\AmDriver\Core\Contract\InstanceDataDirectoryResolverInterface:
+        factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\StorageFactory', 'instanceDataDirectoryResolver']
+        arguments: ['%am_driver.config%']
+
+    ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader: ~
+
+    ApplicationManagerTools\AmDriver\Core\StateView\FileStateViewWriter: ~
 
     ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface:
         class: ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher

@@ -102,6 +102,17 @@ du bundle ; toute autre clé fournie par l'hôte (`location`, ...) est relayée 
 sans validation ni interprétation par le bundle. Voir [README.md](../README.md) (section « Symfony quickstart ») pour
 l'exemple de handler.
 
+### GET_INFO_INSTANCE / SET_STATEVIEW_INSTANCE (sync)
+
+Opérations synchrones (pas de `PENDING`, pas de callback, `idempotencyKey` optionnel) :
+
+| Opération | Effet | Réponse 200 |
+|-----------|--------|-------------|
+| `GET_INFO_INSTANCE` | Lit `{DATA_PATH}/am-driver/actual_resources_consumption.json` | `{ "resources": { … } }` |
+| `SET_STATEVIEW_INSTANCE` | Écrit `{DATA_PATH}/am-driver/state_view.json` (atomique) | `{ "updated": true }` |
+
+`DATA_PATH` est résolu via `InstanceDataDirectoryResolverInterface` (défaut : `{data_dir}/tenants/{tenantId\|instanceId}`). L’hôte peut remplacer le service pour coller à son arborescence (ex. Captain Learning).
+
 ### CREATE_INSTANCE en mode `deferred`
 
 ```yaml

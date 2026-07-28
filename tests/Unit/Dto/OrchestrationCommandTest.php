@@ -216,4 +216,43 @@ final class OrchestrationCommandTest extends TestCase
 
         OrchestrationCommand::fromArray($data);
     }
+
+    public function testFromArraySetStateviewWithoutIdempotencyKey(): void
+    {
+        // Arrange
+        $data = [
+            'operation' => Operation::SET_STATEVIEW_INSTANCE,
+            'appId' => 'am_app_10000000-0000-4000-8000-000000000001',
+            'instanceId' => 'am_ins_10000000-0000-4000-8000-000000000001',
+            'occurredAt' => '2026-05-14T15:35:00+00:00',
+            'stateView' => ['state' => 'started'],
+        ];
+
+        // Act
+        $command = OrchestrationCommand::fromArray($data);
+
+        // Assert
+        self::assertTrue($command->operation()->isSetStateView());
+        self::assertSame('', $command->idempotencyKey());
+        self::assertArrayNotHasKey('idempotencyKey', $command->toArray());
+        self::assertSame(['state' => 'started'], $command->stateView());
+    }
+
+    public function testFromArrayGetInfoWithoutIdempotencyKey(): void
+    {
+        // Arrange
+        $data = [
+            'operation' => Operation::GET_INFO_INSTANCE,
+            'appId' => 'am_app_10000000-0000-4000-8000-000000000001',
+            'instanceId' => 'am_ins_10000000-0000-4000-8000-000000000001',
+            'occurredAt' => '2026-05-14T15:35:00+00:00',
+        ];
+
+        // Act
+        $command = OrchestrationCommand::fromArray($data);
+
+        // Assert
+        self::assertTrue($command->operation()->isGetInfo());
+        self::assertSame('', $command->idempotencyKey());
+    }
 }

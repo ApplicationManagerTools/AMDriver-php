@@ -38,10 +38,21 @@ final class OrchestrationCommandController
         try {
             $payload = JsonPayloadValidator::parseJsonObject((string) $request->getContent());
             $command = OrchestrationCommand::fromArray($payload);
-            $result = $this->processor->process($command);
+            /** @var array<string, string> $queryParams */
+            $queryParams = [];
+            foreach ($request->query->all() as $key => $value) {
+                if (\is_string($key) && \is_string($value)) {
+                    $queryParams[$key] = $value;
+                }
+            }
+            $result = $this->processor->process($command, $queryParams);
+
+            if (isset($result['body']) && \is_array($result['body'])) {
+                return new JsonResponse($result['body'], $result['httpStatus']);
+            }
 
             return new JsonResponse(
-                ['accepted' => true, 'alreadyProcessed' => $result['alreadyProcessed']],
+                ['accepted' => true, 'alreadyProcessed' => $result['alreadyProcessed'] ?? false],
                 $result['httpStatus'],
             );
         } catch (ValidationException $e) {

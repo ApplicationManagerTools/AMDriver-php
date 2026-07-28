@@ -9,6 +9,7 @@ use ApplicationManagerTools\AmDriver\Core\Idempotency\FileOrchestrationCommandLi
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateReceiptStore;
 use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateStore;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
+use ApplicationManagerTools\AmDriver\Core\StateView\RelativeInstanceDataDirectoryResolver;
 
 final class StorageFactory
 {
@@ -50,6 +51,16 @@ final class StorageFactory
     public static function operationalStateReceiptStore(array $config): FileOperationalStateReceiptStore
     {
         return new FileOperationalStateReceiptStore(self::dataDir($config).'/operational-state-receipts');
+    }
+
+    /**
+     * Défaut : `{data_dir}/tenants/{tenantId|instanceId}`. L’hôte peut remplacer le service.
+     *
+     * @param array<string, mixed> $config
+     */
+    public static function instanceDataDirectoryResolver(array $config): RelativeInstanceDataDirectoryResolver
+    {
+        return new RelativeInstanceDataDirectoryResolver(self::dataDir($config).'/tenants');
     }
 
     /**

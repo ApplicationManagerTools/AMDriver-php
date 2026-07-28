@@ -56,10 +56,13 @@ paths:
       summary: Réception d’une commande d’orchestration
       operationId: receptacleOrchestrationCommandCreate
       description: >
-        Point d’entrée unique pour `CREATE_INSTANCE`, `STOP_INSTANCE` et `START_INSTANCE`.
-        Idempotence sur `idempotencyKey` :
+        Point d’entrée unique pour `CREATE_INSTANCE`, `STOP_INSTANCE`, `START_INSTANCE`,
+        `GET_INFO_INSTANCE` et `SET_STATEVIEW_INSTANCE`.
+        Idempotence sur `idempotencyKey` (CREATE/START/STOP) :
         rejeu sans effet secondaire → `200` avec `alreadyProcessed: true`.
-        En cas d'échec handler, le bundle notifie AM via callback (voir `am-client-v1.yaml`).
+        `GET_INFO_INSTANCE` / `SET_STATEVIEW_INSTANCE` sont synchrones (pas de PENDING ni callback) :
+        réponses `{ resources }` / `{ updated: true }`.
+        En cas d'échec handler async, le bundle notifie AM via callback (voir `am-client-v1.yaml`).
         Avec `create_instance_execution: deferred`, `CREATE_INSTANCE` répond `200` avant l'exécution ;
         le callback part après traitement async (`executeCreateInstance`).
       security:
@@ -94,9 +97,34 @@ paths:
                   correlationId: corr_stop_001
                   idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:stop_instance:v1
                   occurredAt: '2026-05-14T16:00:00+00:00'
+              getInfoInstance:
+                summary: GET_INFO_INSTANCE (sync)
+                value:
+                  operation: GET_INFO_INSTANCE
+                  appId: am_app_10000000-0000-4000-8000-000000000001
+                  instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                  occurredAt: '2026-05-14T16:30:00+00:00'
+                  stateView: {}
+              setStateviewInstance:
+                summary: SET_STATEVIEW_INSTANCE (sync)
+                value:
+                  operation: SET_STATEVIEW_INSTANCE
+                  appId: am_app_10000000-0000-4000-8000-000000000001
+                  instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                  occurredAt: '2026-05-14T16:31:00+00:00'
+                  stateView:
+                    state: started
+                    instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                    resources:
+                      proof_storage_mo:
+                        limit: 100
+                        actual: 12
+                        remaining: 88
       responses:
         '200':
-          description: Commande acceptée ou déjà traitée (idempotence)
+          description: >
+            CREATE/START/STOP acceptés (`accepted`/`alreadyProcessed`) ;
+            GET_INFO → `{ resources }` ; SET_STATEVIEW → `{ updated: true }`
           content:
             application/json:
               schema:
@@ -294,9 +322,6 @@ components:
         - operation
         - appId
         - instanceId
-        - tenantId
-        - correlationId
-        - idempotencyKey
         - occurredAt
       properties:
         operation:
@@ -306,8 +331,11 @@ components:
             - STOP_INSTANCE
             - START_INSTANCE
             - DESTROY_INSTANCE
+            - GET_INFO_INSTANCE
+            - SET_STATEVIEW_INSTANCE
           description: >
             `DESTROY_INSTANCE` est reçu par le parseur mais rejeté en v1 par le processeur (`400`).
+            `GET_INFO_INSTANCE` / `SET_STATEVIEW_INSTANCE` sont synchrones (pas de callback).
         appId:
           type: string
           examples:
@@ -324,7 +352,8 @@ components:
           type: string
         idempotencyKey:
           type: string
-          description: Clé stable pour idempotence locale et corrélation callback AM.
+          description: >
+            Obligatoire pour CREATE/START/STOP. Optionnel / omis pour GET_INFO et SET_STATEVIEW.
         occurredAt:
           type: string
           format: date-time

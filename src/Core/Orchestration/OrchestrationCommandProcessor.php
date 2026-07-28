@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace ApplicationManagerTools\AmDriver\Core\Orchestration;
 
+use ApplicationManagerTools\AmDriver\Core\Contract\ActualResourcesConsumptionReaderInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\InstanceDataDirectoryResolverInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\StateViewWriterInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCallbackRequest;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
 use ApplicationManagerTools\AmDriver\Core\Exception\HandlerFailedException;
+use ApplicationManagerTools\AmDriver\Core\Exception\InstanceDataDirectoryNotFoundException;
 use ApplicationManagerTools\AmDriver\Core\Exception\ValidationException;
 use ApplicationManagerTools\AmDriver\Core\Http\AmApiClientInterface;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\IdempotencyStoreInterface;
@@ -47,6 +51,15 @@ final class OrchestrationCommandProcessor
     /** @var string */
     private $createInstanceExecution;
 
+    /** @var InstanceDataDirectoryResolverInterface|null */
+    private $instanceDataDirectoryResolver;
+
+    /** @var ActualResourcesConsumptionReaderInterface|null */
+    private $actualResourcesReader;
+
+    /** @var StateViewWriterInterface|null */
+    private $stateViewWriter;
+
     public function __construct(
         CreateInstanceHandlerInterface $createHandler,
         StopInstanceHandlerInterface $stopHandler,
@@ -55,7 +68,10 @@ final class OrchestrationCommandProcessor
         AmApiClientInterface $amApiClient,
         OrchestrationCommandLifecycleStoreInterface $lifecycleStore,
         DeferredCreateInstanceDispatcherInterface $deferredDispatcher,
-        string $createInstanceExecution = self::CREATE_INSTANCE_EXECUTION_SYNC
+        string $createInstanceExecution = self::CREATE_INSTANCE_EXECUTION_SYNC,
+        ?InstanceDataDirectoryResolverInterface $instanceDataDirectoryResolver = null,
+        ?ActualResourcesConsumptionReaderInterface $actualResourcesReader = null,
+        ?StateViewWriterInterface $stateViewWriter = null
     ) {
         $this->createHandler = $createHandler;
         $this->stopHandler = $stopHandler;
@@ -65,13 +81,25 @@ final class OrchestrationCommandProcessor
         $this->lifecycleStore = $lifecycleStore;
         $this->deferredDispatcher = $deferredDispatcher;
         $this->createInstanceExecution = $createInstanceExecution;
+        $this->instanceDataDirectoryResolver = $instanceDataDirectoryResolver;
+        $this->actualResourcesReader = $actualResourcesReader;
+        $this->stateViewWriter = $stateViewWriter;
     }
 
     /**
-     * @return array{httpStatus: int, alreadyProcessed: bool}
+     * @param array<string, string> $queryParams
+     *
+     * @return array{httpStatus: int, alreadyProcessed?: bool, body?: array<string, mixed>}
      */
-    public function process(OrchestrationCommand $command): array
+    public function process(OrchestrationCommand $command, array $queryParams = []): array
     {
+        if ($command->operation()->isGetInfo()) {
+            return $this->processGetInfo($command, $queryParams);
+        }
+        if ($command->operation()->isSetStateView()) {
+            return $this->processSetStateView($command, $queryParams);
+        }
+
         if ($this->idempotencyStore->has($command->idempotencyKey())) {
             return ['httpStatus' => 200, 'alreadyProcessed' => true];
         }
@@ -144,6 +172,67 @@ final class OrchestrationCommandProcessor
             throw $e;
         } finally {
             $this->lifecycleStore->clearInProgress($command->idempotencyKey());
+        }
+    }
+
+    /**
+     * @param array<string, string> $queryParams
+     *
+     * @return array{httpStatus: int, body: array<string, mixed>}
+     */
+    private function processGetInfo(OrchestrationCommand $command, array $queryParams): array
+    {
+        $this->assertSyncDepsConfigured();
+
+        try {
+            $dataDir = $this->instanceDataDirectoryResolver->resolve($command->instanceId(), $queryParams);
+        } catch (InstanceDataDirectoryNotFoundException $e) {
+            return ['httpStatus' => 404, 'body' => ['error' => $e->getMessage()]];
+        }
+
+        $resources = $this->actualResourcesReader->read($dataDir);
+
+        return ['httpStatus' => 200, 'body' => ['resources' => $resources]];
+    }
+
+    /**
+     * @param array<string, string> $queryParams
+     *
+     * @return array{httpStatus: int, body: array<string, mixed>}
+     */
+    private function processSetStateView(OrchestrationCommand $command, array $queryParams): array
+    {
+        $this->assertSyncDepsConfigured();
+
+        if ([] === $command->stateView()) {
+            return ['httpStatus' => 400, 'body' => ['error' => 'SET_STATEVIEW_INSTANCE requires a non-empty stateView']];
+        }
+
+        try {
+            $dataDir = $this->instanceDataDirectoryResolver->resolve($command->instanceId(), $queryParams);
+        } catch (InstanceDataDirectoryNotFoundException $e) {
+            return ['httpStatus' => 404, 'body' => ['error' => $e->getMessage()]];
+        }
+
+        try {
+            $this->stateViewWriter->write($dataDir, $command->stateView());
+        } catch (Throwable $e) {
+            return ['httpStatus' => 500, 'body' => ['error' => $e->getMessage()]];
+        }
+
+        return ['httpStatus' => 200, 'body' => ['updated' => true]];
+    }
+
+    private function assertSyncDepsConfigured(): void
+    {
+        if (
+            null === $this->instanceDataDirectoryResolver
+            || null === $this->actualResourcesReader
+            || null === $this->stateViewWriter
+        ) {
+            throw new ValidationException(
+                'GET_INFO_INSTANCE / SET_STATEVIEW_INSTANCE require instance data directory configuration',
+            );
         }
     }
 

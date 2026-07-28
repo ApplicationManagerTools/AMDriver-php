@@ -18,6 +18,9 @@ use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProc
 use ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager;
+use ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader;
+use ApplicationManagerTools\AmDriver\Core\StateView\FileStateViewWriter;
+use ApplicationManagerTools\AmDriver\Core\StateView\RelativeInstanceDataDirectoryResolver;
 
 final class ReceptacleBootstrapFactory
 {
@@ -44,6 +47,10 @@ final class ReceptacleBootstrapFactory
                 new NoopAmApiClient(),
                 new FileOrchestrationCommandLifecycleStore($dataDir.'/idempotency-in-progress'),
                 new UnconfiguredDeferredCreateInstanceDispatcher(),
+                OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC,
+                new RelativeInstanceDataDirectoryResolver($dataDir.'/tenants'),
+                new FileActualResourcesConsumptionReader(),
+                new FileStateViewWriter(),
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),
