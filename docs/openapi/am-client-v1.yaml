@@ -131,6 +131,38 @@ paths:
         '404':
           description: Commande inconnue côté AM
 
+  /api/v1/instances/{instanceId}/billing/cancel-subscription:
+    post:
+      tags:
+        - AmOutbound
+      summary: Programmer l’annulation d’abonnement en fin de période (bundle → AM)
+      operationId: amDriverCancelSubscription
+      description: >
+        Implémenté par `AmApiClient::cancelSubscription`. Authentifié par `X-AM-Application-Token`.
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifiant instance AM `am_ins_<uuid-v4>`
+        - name: X-AM-Application-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Annulation programmée (voir OpenAPI plateforme)
+        '400':
+          description: Validation AM
+        '403':
+          description: Token invalide ou instance hors périmètre
+        '404':
+          description: Instance inconnue
+        '503':
+          description: Clé API Stripe non configurée côté AM
+
 components:
   schemas:
     ConsumptionWebhookEvent:

@@ -49,6 +49,26 @@ final class AmApiClient implements AmApiClientInterface
         );
     }
 
+    public function cancelSubscription(string $instanceId): array
+    {
+        $trimmed = trim($instanceId);
+        if ('' === $trimmed) {
+            throw new \InvalidArgumentException('instanceId cannot be empty.');
+        }
+
+        $url = $this->config->baseUrl().'/api/v1/instances/'.rawurlencode($trimmed).'/billing/cancel-subscription';
+
+        return $this->request(
+            'POST',
+            $url,
+            [
+                'headers' => $this->applicationHeaders(),
+                'json' => new \stdClass(),
+                'timeout' => $this->config->timeoutSeconds(),
+            ],
+        );
+    }
+
     /**
      * @return array<string, string>
      */

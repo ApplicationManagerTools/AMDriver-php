@@ -21,4 +21,9 @@ final class NoopAmApiClient implements AmApiClientInterface
     {
         return ['statusCode' => 202, 'body' => '{"success":true}'];
     }
+
+    public function cancelSubscription(string $instanceId): array
+    {
+        return ['statusCode' => 202, 'body' => '{"success":true,"data":{"accepted":true,"cancelAtPeriodEnd":true,"periodEnd":"2026-12-31T00:00:00+00:00"}}'];
+    }
 }
