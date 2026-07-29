@@ -111,6 +111,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }
+
+                public function resumeSubscription(string $instanceId): array
+                {
+                    return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
             },
             new InMemoryLifecycleStore(),
             new class implements DeferredCreateInstanceDispatcherInterface {
@@ -202,6 +207,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
 
                 public function cancelSubscription(string $instanceId): array
+                {
+                    return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
+
+                public function resumeSubscription(string $instanceId): array
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }
@@ -402,6 +412,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }
+
+                public function resumeSubscription(string $instanceId): array
+                {
+                    return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
             },
             $lifecycle,
             new class implements DeferredCreateInstanceDispatcherInterface {
@@ -508,6 +523,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
 
                 public function cancelSubscription(string $instanceId): array
+                {
+                    return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
+
+                public function resumeSubscription(string $instanceId): array
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }

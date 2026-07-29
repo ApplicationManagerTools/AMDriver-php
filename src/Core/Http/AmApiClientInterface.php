@@ -25,4 +25,11 @@ interface AmApiClientInterface
      * @return array{statusCode: int, body: string}
      */
     public function cancelSubscription(string $instanceId): array;
+
+    /**
+     * Annule une résiliation d’abonnement programmée en fin de période côté AM.
+     *
+     * @return array{statusCode: int, body: string}
+     */
+    public function resumeSubscription(string $instanceId): array;
 }

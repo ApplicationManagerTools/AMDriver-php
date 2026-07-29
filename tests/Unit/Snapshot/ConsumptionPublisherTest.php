@@ -36,8 +36,12 @@ final class ConsumptionPublisherTest extends TestCase
                 return ['statusCode' => 202, 'body' => ''];
             }
 
-
             public function cancelSubscription(string $instanceId): array
+            {
+                return ['statusCode' => 202, 'body' => '{"success":true}'];
+            }
+
+            public function resumeSubscription(string $instanceId): array
             {
                 return ['statusCode' => 202, 'body' => '{"success":true}'];
             }
