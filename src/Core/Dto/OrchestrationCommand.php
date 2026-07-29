@@ -78,14 +78,16 @@ final class OrchestrationCommand
     {
         JsonPayloadValidator::requireKeys(
             $data,
-            ['operation', 'appId', 'instanceId', 'idempotencyKey', 'occurredAt'],
+            ['operation', 'appId', 'instanceId', 'occurredAt'],
         );
-        foreach (['operation', 'appId', 'instanceId', 'idempotencyKey', 'occurredAt'] as $key) {
+        foreach (['operation', 'appId', 'instanceId', 'occurredAt'] as $key) {
             JsonPayloadValidator::requireNonEmptyString($data, $key);
         }
 
         $operation = Operation::fromString((string) $data['operation']);
         self::assertEnrichmentRules($operation, $data);
+
+        $idempotencyKey = self::parseIdempotencyKey($operation, $data);
 
         $correlationId = self::parseOptionalNonEmptyString($data, 'correlationId');
 
@@ -103,7 +105,7 @@ final class OrchestrationCommand
             $operation,
             (string) $data['appId'],
             (string) $data['instanceId'],
-            (string) $data['idempotencyKey'],
+            $idempotencyKey,
             (string) $data['occurredAt'],
             $correlationId,
             $name,
@@ -178,9 +180,11 @@ final class OrchestrationCommand
             'operation' => $this->operation->toString(),
             'appId' => $this->appId,
             'instanceId' => $this->instanceId,
-            'idempotencyKey' => $this->idempotencyKey,
             'occurredAt' => $this->occurredAt,
         ];
+        if ('' !== $this->idempotencyKey) {
+            $payload['idempotencyKey'] = $this->idempotencyKey;
+        }
         if (null !== $this->correlationId) {
             $payload['correlationId'] = $this->correlationId;
         }
@@ -198,6 +202,28 @@ final class OrchestrationCommand
         }
 
         return $payload;
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     */
+    private static function parseIdempotencyKey(Operation $operation, array $data): string
+    {
+        if ($operation->isSyncStateOp()) {
+            if (!\array_key_exists('idempotencyKey', $data)) {
+                return '';
+            }
+            if (!\is_string($data['idempotencyKey'])) {
+                throw new ValidationException('Field idempotencyKey must be a string when present');
+            }
+
+            return trim($data['idempotencyKey']);
+        }
+
+        JsonPayloadValidator::requireKeys($data, ['idempotencyKey']);
+        JsonPayloadValidator::requireNonEmptyString($data, 'idempotencyKey');
+
+        return (string) $data['idempotencyKey'];
     }
 
     /**

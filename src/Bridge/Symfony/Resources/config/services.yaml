@@ -74,6 +74,11 @@ services:
             $deferredDispatcher: '@ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface'
             $createInstanceExecution: '%am_driver.config.create_instance_execution%'
 
+    # Helpers optionnels pour les handlers hôte (écriture/lecture fichiers K3540).
+    ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader: ~
+
+    ApplicationManagerTools\AmDriver\Core\StateView\FileStateViewWriter: ~
+
     ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface:
         class: ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher
 

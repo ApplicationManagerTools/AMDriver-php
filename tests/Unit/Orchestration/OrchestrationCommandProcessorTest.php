@@ -6,6 +6,8 @@ namespace ApplicationManagerTools\AmDriver\Tests\Unit\Orchestration;
 
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
@@ -58,6 +60,17 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
             },
             new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements GetInfoInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): array
+                {
+                    return [];
+                }
+            },
+            new class implements SetStateViewInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): void
                 {
                 }
@@ -136,6 +149,17 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
             },
             new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements GetInfoInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): array
+                {
+                    return [];
+                }
+            },
+            new class implements SetStateViewInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): void
                 {
                 }
@@ -321,6 +345,17 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new class implements GetInfoInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): array
+                {
+                    return [];
+                }
+            },
+            new class implements SetStateViewInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
             new class implements IdempotencyStoreInterface {
                 public function has(string $idempotencyKey): bool
                 {
@@ -410,6 +445,17 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
             },
             new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements GetInfoInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): array
+                {
+                    return [];
+                }
+            },
+            new class implements SetStateViewInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): void
                 {
                 }

@@ -102,6 +102,33 @@ du bundle ; toute autre clé fournie par l'hôte (`location`, ...) est relayée 
 sans validation ni interprétation par le bundle. Voir [README.md](../README.md) (section « Symfony quickstart ») pour
 l'exemple de handler.
 
+### GET_INFO_INSTANCE / SET_STATEVIEW_INSTANCE (sync, via handlers)
+
+Comme CREATE / START / STOP, ces opérations sont déléguées à l’**hôte** :
+
+| Interface | Rôle | Réponse HTTP 200 |
+|-----------|------|------------------|
+| `GetInfoInstanceHandlerInterface` | Retourne `resources` (conso locale) | `{ "resources": { … } }` |
+| `SetStateViewInstanceHandlerInterface` | Persiste `command->stateView()` (ex. `state_view.json`) | `{ "updated": true }` |
+
+Pas de callback AM, pas d’`idempotencyKey` obligatoire. L’hôte décide du chemin / format fichier.
+
+Helpers optionnels (à composer dans vos handlers) :
+
+- `FileActualResourcesConsumptionReader` — lit `{dataDir}/am-driver/actual_resources_consumption.json`
+- `FileStateViewWriter` — écrit `{dataDir}/am-driver/state_view.json`
+- `FileTenantWorkspace` — dossier par `instanceId`
+
+Override Symfony :
+
+```yaml
+ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface:
+    alias: App\Infrastructure\Am\GetInfoInstanceHandler
+
+ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface:
+    alias: App\Infrastructure\Am\SetStateViewInstanceHandler
+```
+
 ### CREATE_INSTANCE en mode `deferred`
 
 ```yaml

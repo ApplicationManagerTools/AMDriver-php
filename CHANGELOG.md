@@ -1,6 +1,27 @@
 # Changelog
 
-## 0.0.16 — unreleased
+## 0.0.17 — unreleased
+
+### Breaking
+
+- `GET_INFO_INSTANCE` / `SET_STATEVIEW_INSTANCE` ne sont plus gérés en interne (fichier + `queryParams`) :
+  le processor délègue à `GetInfoInstanceHandlerInterface` / `SetStateViewInstanceHandlerInterface` (comme CREATE / START / STOP).
+- `OrchestrationCommandProcessor::process()` ne prend plus de `$queryParams` ; le constructeur exige les deux handlers
+  (plus d’arguments optionnels reader/writer/resolver).
+- L’hôte doit aliaser les deux interfaces dans sa config Symfony. Helpers optionnels inchangés :
+  `FileActualResourcesConsumptionReader`, `FileStateViewWriter`, `FileTenantWorkspace`.
+
+### Migration
+
+```yaml
+ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface:
+    alias: App\Infrastructure\Am\GetInfoInstanceHandler
+
+ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface:
+    alias: App\Infrastructure\Am\SetStateViewInstanceHandler
+```
+
+## 0.0.16 — 2026-07-03
 
 ### Breaking
 

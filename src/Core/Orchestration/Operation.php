@@ -12,6 +12,8 @@ final class Operation
     public const STOP_INSTANCE = 'STOP_INSTANCE';
     public const START_INSTANCE = 'START_INSTANCE';
     public const DESTROY_INSTANCE = 'DESTROY_INSTANCE';
+    public const GET_INFO_INSTANCE = 'GET_INFO_INSTANCE';
+    public const SET_STATEVIEW_INSTANCE = 'SET_STATEVIEW_INSTANCE';
 
     /** @var string */
     private $value;
@@ -28,6 +30,8 @@ final class Operation
             self::STOP_INSTANCE,
             self::START_INSTANCE,
             self::DESTROY_INSTANCE,
+            self::GET_INFO_INSTANCE,
+            self::SET_STATEVIEW_INSTANCE,
         ];
         if (!\in_array($value, $allowed, true)) {
             throw new InvalidArgumentException(sprintf('Unknown operation: %s', $value));
@@ -59,5 +63,21 @@ final class Operation
     public function isDestroy(): bool
     {
         return self::DESTROY_INSTANCE === $this->value;
+    }
+
+    public function isGetInfo(): bool
+    {
+        return self::GET_INFO_INSTANCE === $this->value;
+    }
+
+    public function isSetStateView(): bool
+    {
+        return self::SET_STATEVIEW_INSTANCE === $this->value;
+    }
+
+    /** Ops sync K3540 : pas d’idempotency store ni callback. */
+    public function isSyncStateOp(): bool
+    {
+        return $this->isGetInfo() || $this->isSetStateView();
     }
 }

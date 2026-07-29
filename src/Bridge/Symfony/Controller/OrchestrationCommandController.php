@@ -40,8 +40,12 @@ final class OrchestrationCommandController
             $command = OrchestrationCommand::fromArray($payload);
             $result = $this->processor->process($command);
 
+            if (isset($result['body'])) {
+                return new JsonResponse($result['body'], $result['httpStatus']);
+            }
+
             return new JsonResponse(
-                ['accepted' => true, 'alreadyProcessed' => $result['alreadyProcessed']],
+                ['accepted' => true, 'alreadyProcessed' => $result['alreadyProcessed'] ?? false],
                 $result['httpStatus'],
             );
         } catch (ValidationException $e) {

@@ -87,7 +87,17 @@ final class ReceptacleHttpKernel
             $command = OrchestrationCommand::fromArray(JsonPayloadValidator::parseJsonObject($body));
             $result = $this->orchestrationProcessor->process($command);
 
-            return [$result['httpStatus'], json_encode(['accepted' => true], JSON_THROW_ON_ERROR)];
+            if (isset($result['body'])) {
+                return [$result['httpStatus'], json_encode($result['body'], JSON_THROW_ON_ERROR)];
+            }
+
+            return [
+                $result['httpStatus'],
+                json_encode(
+                    ['accepted' => true, 'alreadyProcessed' => $result['alreadyProcessed'] ?? false],
+                    JSON_THROW_ON_ERROR,
+                ),
+            ];
         } catch (ValidationException $e) {
             return [400, json_encode(['error' => $e->getMessage()], JSON_THROW_ON_ERROR)];
         }

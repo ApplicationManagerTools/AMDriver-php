@@ -6,6 +6,8 @@ namespace ApplicationManagerTools\AmDriver\Core\Orchestration;
 
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
@@ -32,6 +34,12 @@ final class OrchestrationCommandProcessor
     /** @var StartInstanceHandlerInterface */
     private $startHandler;
 
+    /** @var GetInfoInstanceHandlerInterface */
+    private $getInfoHandler;
+
+    /** @var SetStateViewInstanceHandlerInterface */
+    private $setStateViewHandler;
+
     /** @var IdempotencyStoreInterface */
     private $idempotencyStore;
 
@@ -51,6 +59,8 @@ final class OrchestrationCommandProcessor
         CreateInstanceHandlerInterface $createHandler,
         StopInstanceHandlerInterface $stopHandler,
         StartInstanceHandlerInterface $startHandler,
+        GetInfoInstanceHandlerInterface $getInfoHandler,
+        SetStateViewInstanceHandlerInterface $setStateViewHandler,
         IdempotencyStoreInterface $idempotencyStore,
         AmApiClientInterface $amApiClient,
         OrchestrationCommandLifecycleStoreInterface $lifecycleStore,
@@ -60,6 +70,8 @@ final class OrchestrationCommandProcessor
         $this->createHandler = $createHandler;
         $this->stopHandler = $stopHandler;
         $this->startHandler = $startHandler;
+        $this->getInfoHandler = $getInfoHandler;
+        $this->setStateViewHandler = $setStateViewHandler;
         $this->idempotencyStore = $idempotencyStore;
         $this->amApiClient = $amApiClient;
         $this->lifecycleStore = $lifecycleStore;
@@ -68,10 +80,17 @@ final class OrchestrationCommandProcessor
     }
 
     /**
-     * @return array{httpStatus: int, alreadyProcessed: bool}
+     * @return array{httpStatus: int, alreadyProcessed?: bool, body?: array<string, mixed>}
      */
     public function process(OrchestrationCommand $command): array
     {
+        if ($command->operation()->isGetInfo()) {
+            return $this->processGetInfo($command);
+        }
+        if ($command->operation()->isSetStateView()) {
+            return $this->processSetStateView($command);
+        }
+
         if ($this->idempotencyStore->has($command->idempotencyKey())) {
             return ['httpStatus' => 200, 'alreadyProcessed' => true];
         }
@@ -145,6 +164,50 @@ final class OrchestrationCommandProcessor
         } finally {
             $this->lifecycleStore->clearInProgress($command->idempotencyKey());
         }
+    }
+
+    /**
+     * @return array{httpStatus: int, body: array<string, mixed>}
+     */
+    private function processGetInfo(OrchestrationCommand $command): array
+    {
+        try {
+            $resources = $this->getInfoHandler->handle($command);
+        } catch (HandlerFailedException $e) {
+            $status = CallbackStatus::RETRYABLE_FAILURE === $e->callbackStatus()->toString() ? 500 : 400;
+
+            return ['httpStatus' => $status, 'body' => ['error' => $e->getMessage()]];
+        } catch (ValidationException $e) {
+            return ['httpStatus' => 400, 'body' => ['error' => $e->getMessage()]];
+        } catch (Throwable $e) {
+            return ['httpStatus' => 500, 'body' => ['error' => $e->getMessage()]];
+        }
+
+        return ['httpStatus' => 200, 'body' => ['resources' => $resources]];
+    }
+
+    /**
+     * @return array{httpStatus: int, body: array<string, mixed>}
+     */
+    private function processSetStateView(OrchestrationCommand $command): array
+    {
+        if ([] === $command->stateView()) {
+            return ['httpStatus' => 400, 'body' => ['error' => 'SET_STATEVIEW_INSTANCE requires a non-empty stateView']];
+        }
+
+        try {
+            $this->setStateViewHandler->handle($command);
+        } catch (HandlerFailedException $e) {
+            $status = CallbackStatus::RETRYABLE_FAILURE === $e->callbackStatus()->toString() ? 500 : 400;
+
+            return ['httpStatus' => $status, 'body' => ['error' => $e->getMessage()]];
+        } catch (ValidationException $e) {
+            return ['httpStatus' => 400, 'body' => ['error' => $e->getMessage()]];
+        } catch (Throwable $e) {
+            return ['httpStatus' => 500, 'body' => ['error' => $e->getMessage()]];
+        }
+
+        return ['httpStatus' => 200, 'body' => ['updated' => true]];
     }
 
     /**
