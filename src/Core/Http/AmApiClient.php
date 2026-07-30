@@ -6,6 +6,8 @@ namespace ApplicationManagerTools\AmDriver\Core\Http;
 
 use ApplicationManagerTools\AmDriver\Core\Dto\ConsumptionWebhookEvent;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCallbackRequest;
+use InvalidArgumentException;
+use stdClass;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class AmApiClient implements AmApiClientInterface
@@ -44,6 +46,46 @@ final class AmApiClient implements AmApiClientInterface
             [
                 'headers' => $this->applicationHeaders(),
                 'json' => $request->toArray(),
+                'timeout' => $this->config->timeoutSeconds(),
+            ],
+        );
+    }
+
+    public function cancelSubscription(string $instanceId): array
+    {
+        $trimmed = trim($instanceId);
+        if ('' === $trimmed) {
+            throw new InvalidArgumentException('instanceId cannot be empty.');
+        }
+
+        $url = $this->config->baseUrl().'/api/v1/instances/'.rawurlencode($trimmed).'/billing/cancel-subscription';
+
+        return $this->request(
+            'POST',
+            $url,
+            [
+                'headers' => $this->applicationHeaders(),
+                'json' => new stdClass(),
+                'timeout' => $this->config->timeoutSeconds(),
+            ],
+        );
+    }
+
+    public function resumeSubscription(string $instanceId): array
+    {
+        $trimmed = trim($instanceId);
+        if ('' === $trimmed) {
+            throw new InvalidArgumentException('instanceId cannot be empty.');
+        }
+
+        $url = $this->config->baseUrl().'/api/v1/instances/'.rawurlencode($trimmed).'/billing/resume-subscription';
+
+        return $this->request(
+            'POST',
+            $url,
+            [
+                'headers' => $this->applicationHeaders(),
+                'json' => new stdClass(),
                 'timeout' => $this->config->timeoutSeconds(),
             ],
         );

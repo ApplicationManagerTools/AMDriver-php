@@ -99,6 +99,46 @@ final class AmApiClientTest extends TestCase
         self::assertSame('cl_demo_67mzxiq', $json['integrationInstanceId'] ?? null);
     }
 
+    public function testCancelSubscriptionPostsToInstanceBillingRoute(): void
+    {
+        // Arrange
+        $recording = new RecordingHttpClient();
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
+        $instanceId = 'am_ins_10000000-0000-4000-8000-000000000001';
+
+        // Act
+        $response = $api->cancelSubscription($instanceId);
+
+        // Assert
+        self::assertSame(202, $response['statusCode']);
+        self::assertSame('POST', $recording->method);
+        self::assertSame(
+            'https://am.example/api/v1/instances/'.$instanceId.'/billing/cancel-subscription',
+            $recording->url,
+        );
+        self::assertSame('secret-app', $this->headerValue($recording->options, 'X-AM-Application-Token'));
+    }
+
+    public function testResumeSubscriptionPostsToInstanceBillingRoute(): void
+    {
+        // Arrange
+        $recording = new RecordingHttpClient();
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
+        $instanceId = 'am_ins_10000000-0000-4000-8000-000000000001';
+
+        // Act
+        $response = $api->resumeSubscription($instanceId);
+
+        // Assert
+        self::assertSame(202, $response['statusCode']);
+        self::assertSame('POST', $recording->method);
+        self::assertSame(
+            'https://am.example/api/v1/instances/'.$instanceId.'/billing/resume-subscription',
+            $recording->url,
+        );
+        self::assertSame('secret-app', $this->headerValue($recording->options, 'X-AM-Application-Token'));
+    }
+
     /**
      * @param array<string, mixed> $options
      */
