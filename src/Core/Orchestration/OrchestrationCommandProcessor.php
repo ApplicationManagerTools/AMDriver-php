@@ -7,6 +7,7 @@ namespace ApplicationManagerTools\AmDriver\Core\Orchestration;
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\QuotaExceededInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
@@ -34,6 +35,9 @@ final class OrchestrationCommandProcessor
     /** @var StartInstanceHandlerInterface */
     private $startHandler;
 
+    /** @var QuotaExceededInstanceHandlerInterface */
+    private $quotaExceededHandler;
+
     /** @var GetInfoInstanceHandlerInterface */
     private $getInfoHandler;
 
@@ -59,6 +63,7 @@ final class OrchestrationCommandProcessor
         CreateInstanceHandlerInterface $createHandler,
         StopInstanceHandlerInterface $stopHandler,
         StartInstanceHandlerInterface $startHandler,
+        QuotaExceededInstanceHandlerInterface $quotaExceededHandler,
         GetInfoInstanceHandlerInterface $getInfoHandler,
         SetStateViewInstanceHandlerInterface $setStateViewHandler,
         IdempotencyStoreInterface $idempotencyStore,
@@ -70,6 +75,7 @@ final class OrchestrationCommandProcessor
         $this->createHandler = $createHandler;
         $this->stopHandler = $stopHandler;
         $this->startHandler = $startHandler;
+        $this->quotaExceededHandler = $quotaExceededHandler;
         $this->getInfoHandler = $getInfoHandler;
         $this->setStateViewHandler = $setStateViewHandler;
         $this->idempotencyStore = $idempotencyStore;
@@ -107,6 +113,8 @@ final class OrchestrationCommandProcessor
                 $this->stopHandler->handle($command);
             } elseif ($command->operation()->isStart()) {
                 $this->startHandler->handle($command);
+            } elseif ($command->operation()->isQuotaExceeded()) {
+                $this->quotaExceededHandler->handle($command);
             } elseif ($command->operation()->isDestroy()) {
                 throw new ValidationException('DESTROY_INSTANCE is not supported by am-driver v1; see docs/ECARTS-AM.md');
             } else {

@@ -14,7 +14,7 @@ L’intégration vise à :
 
 - **aligner** le catalogue AM (clés de ressources, unités, formules) avec ce que votre produit sait réellement mesurer ;
 - **recevoir** depuis AM le **document d’état opérationnel** versionné (`instance-operational-state.v1`) pour chaque instance ;
-- **répondre** aux **commandes d’orchestration** (`CREATE_INSTANCE`, `STOP_INSTANCE`, `START_INSTANCE`) émises par AM ;
+- **répondre** aux **commandes d’orchestration** (`CREATE_INSTANCE`, `STOP_INSTANCE`, `START_INSTANCE`, `QUOTA_EXCEEDED`) émises par AM ;
 - **pousser** vers AM les **mesures de consommation** au bon moment, avec un identifiant produit stable (`source`) ;
 - **confirmer** à AM le succès ou l’échec des commandes via les **callbacks** HTTP prévus par AM.
 

@@ -57,8 +57,8 @@ paths:
       operationId: receptacleOrchestrationCommandCreate
       description: >
         Point d’entrée unique pour `CREATE_INSTANCE`, `STOP_INSTANCE`, `START_INSTANCE`,
-        `GET_INFO_INSTANCE` et `SET_STATEVIEW_INSTANCE`.
-        Idempotence sur `idempotencyKey` (CREATE/START/STOP) :
+        `QUOTA_EXCEEDED`, `GET_INFO_INSTANCE` et `SET_STATEVIEW_INSTANCE`.
+        Idempotence sur `idempotencyKey` (CREATE/START/STOP/QUOTA_EXCEEDED) :
         rejeu sans effet secondaire → `200` avec `alreadyProcessed: true`.
         `GET_INFO_INSTANCE` / `SET_STATEVIEW_INSTANCE` sont synchrones (pas de PENDING ni callback) :
         réponses `{ resources }` / `{ updated: true }`.
@@ -330,6 +330,7 @@ components:
             - CREATE_INSTANCE
             - STOP_INSTANCE
             - START_INSTANCE
+            - QUOTA_EXCEEDED
             - DESTROY_INSTANCE
             - GET_INFO_INSTANCE
             - SET_STATEVIEW_INSTANCE

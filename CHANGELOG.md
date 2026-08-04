@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.0.19 — unreleased
+
+### Breaking
+
+- Nouvelle opération d’orchestration `QUOTA_EXCEEDED` et interface hôte
+  `QuotaExceededInstanceHandlerInterface` (idempotence + callback comme START/STOP).
+- `OrchestrationCommandProcessor` exige ce handler en 4ᵉ argument constructeur
+  (après `StartInstanceHandlerInterface`).
+
+### Migration
+
+```yaml
+ApplicationManagerTools\AmDriver\Core\Contract\QuotaExceededInstanceHandlerInterface:
+    alias: App\Infrastructure\Am\QuotaExceededInstanceHandler
+```
+
 ## 0.0.17 — unreleased
 
 ### Breaking

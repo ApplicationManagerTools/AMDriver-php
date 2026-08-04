@@ -7,6 +7,7 @@ namespace ApplicationManagerTools\AmDriver\Tests\Unit\Orchestration;
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\QuotaExceededInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
@@ -17,6 +18,7 @@ use ApplicationManagerTools\AmDriver\Core\Http\AmApiClientInterface;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\IdempotencyStoreInterface;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\OrchestrationCommandLifecycleStoreInterface;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\CallbackStatus;
+use ApplicationManagerTools\AmDriver\Core\Orchestration\Operation;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor;
 use PHPUnit\Framework\TestCase;
 
@@ -60,6 +62,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
             },
             new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements QuotaExceededInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): void
                 {
                 }
@@ -159,6 +166,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
             },
             new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements QuotaExceededInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): void
                 {
                 }
@@ -365,6 +377,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new class implements QuotaExceededInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
             new class implements GetInfoInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): array
                 {
@@ -436,6 +453,134 @@ final class OrchestrationCommandProcessorTest extends TestCase
         self::assertSame('FAILED', $callbacks[0]['status'] ?? null);
     }
 
+    public function testQuotaExceededDelegatesToHandlerAndReportsSucceeded(): void
+    {
+        // Arrange
+        $handled = false;
+        $callbacks = [];
+        $payload = [
+            'operation' => Operation::QUOTA_EXCEEDED,
+            'appId' => 'am_app_1',
+            'instanceId' => 'am_ins_1',
+            'tenantId' => 'am_ten_1',
+            'correlationId' => 'corr-1',
+            'idempotencyKey' => 'am_ins_1:reaction:proof:quota_exceeded:v1',
+            'occurredAt' => '2026-08-04T10:00:00+00:00',
+            'stateView' => [
+                'state' => 'quota_exceeded',
+                'name' => 'demo',
+                'instanceId' => 'am_ins_1',
+                'expirationDate' => '2026-09-01T00:00:00+00:00',
+                'subscription' => ['id' => 'sub', 'name' => 'Pro'],
+                'resources' => [],
+            ],
+        ];
+        $command = OrchestrationCommand::fromArray($payload);
+        $processor = new OrchestrationCommandProcessor(
+            new class implements CreateInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): CreateInstanceHandlerResult
+                {
+                    return CreateInstanceHandlerResult::fromArray([
+                        'startedAt' => '2026-01-01T00:00:00+00:00',
+                        'integrationInstanceId' => 'x',
+                    ]);
+                }
+            },
+            new class implements StopInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class($handled) implements QuotaExceededInstanceHandlerInterface {
+                /** @var bool */
+                private $handled;
+
+                public function __construct(bool &$handled)
+                {
+                    $this->handled = &$handled;
+                }
+
+                public function handle(OrchestrationCommand $command): void
+                {
+                    $this->handled = true;
+                }
+            },
+            new class implements GetInfoInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): array
+                {
+                    return [];
+                }
+            },
+            new class implements SetStateViewInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements IdempotencyStoreInterface {
+                public function has(string $idempotencyKey): bool
+                {
+                    return false;
+                }
+
+                public function remember(string $idempotencyKey): void
+                {
+                }
+            },
+            new class($callbacks) implements AmApiClientInterface {
+                /** @var list<array<string, mixed>> */
+                private $callbacks;
+
+                /** @param list<array<string, mixed>> $callbacks */
+                public function __construct(array &$callbacks)
+                {
+                    $this->callbacks = &$callbacks;
+                }
+
+                public function pushConsumption($event): array
+                {
+                    return ['statusCode' => 202, 'body' => ''];
+                }
+
+                public function reportOrchestrationCallback($request): array
+                {
+                    $this->callbacks[] = $request->toArray();
+
+                    return ['statusCode' => 202, 'body' => ''];
+                }
+
+                public function cancelSubscription(string $instanceId): array
+                {
+                    return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
+
+                public function resumeSubscription(string $instanceId): array
+                {
+                    return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
+            },
+            new InMemoryLifecycleStore(),
+            new class implements DeferredCreateInstanceDispatcherInterface {
+                public function dispatch(OrchestrationCommand $command): void
+                {
+                }
+            },
+        );
+
+        // Act
+        $result = $processor->process($command);
+
+        // Assert
+        self::assertSame(200, $result['httpStatus']);
+        self::assertTrue($handled);
+        self::assertCount(1, $callbacks);
+        self::assertSame('SUCCEEDED', $callbacks[0]['status'] ?? null);
+    }
+
     private function createCommand(): OrchestrationCommand
     {
         /** @var array<string, mixed> $payload */
@@ -475,6 +620,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 }
             },
             new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements QuotaExceededInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): void
                 {
                 }

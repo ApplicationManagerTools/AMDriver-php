@@ -11,6 +11,7 @@ final class Operation
     public const CREATE_INSTANCE = 'CREATE_INSTANCE';
     public const STOP_INSTANCE = 'STOP_INSTANCE';
     public const START_INSTANCE = 'START_INSTANCE';
+    public const QUOTA_EXCEEDED = 'QUOTA_EXCEEDED';
     public const DESTROY_INSTANCE = 'DESTROY_INSTANCE';
     public const GET_INFO_INSTANCE = 'GET_INFO_INSTANCE';
     public const SET_STATEVIEW_INSTANCE = 'SET_STATEVIEW_INSTANCE';
@@ -29,6 +30,7 @@ final class Operation
             self::CREATE_INSTANCE,
             self::STOP_INSTANCE,
             self::START_INSTANCE,
+            self::QUOTA_EXCEEDED,
             self::DESTROY_INSTANCE,
             self::GET_INFO_INSTANCE,
             self::SET_STATEVIEW_INSTANCE,
@@ -58,6 +60,11 @@ final class Operation
     public function isStart(): bool
     {
         return self::START_INSTANCE === $this->value;
+    }
+
+    public function isQuotaExceeded(): bool
+    {
+        return self::QUOTA_EXCEEDED === $this->value;
     }
 
     public function isDestroy(): bool
