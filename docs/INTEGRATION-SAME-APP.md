@@ -40,6 +40,9 @@ Implémenter et enregistrer (autoconfigure Symfony) :
 - `CreateInstanceHandlerInterface`
 - `StopInstanceHandlerInterface`
 - `StartInstanceHandlerInterface`
+- `QuotaExceededInstanceHandlerInterface`
+- `GetInfoInstanceHandlerInterface`
+- `SetStateViewInstanceHandlerInterface`
 
 Le `OrchestrationCommandProcessor` du bundle envoie les callbacks AM après succès / échec.
 

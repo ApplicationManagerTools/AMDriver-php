@@ -7,6 +7,7 @@ namespace ApplicationManagerTools\AmDriver\Tests\Unit\StateView;
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\QuotaExceededInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
@@ -172,6 +173,11 @@ final class SyncStateViewOperationsTest extends TestCase
                 }
             },
             new class implements StartInstanceHandlerInterface {
+                public function handle(OrchestrationCommand $command): void
+                {
+                }
+            },
+            new class implements QuotaExceededInstanceHandlerInterface {
                 public function handle(OrchestrationCommand $command): void
                 {
                 }

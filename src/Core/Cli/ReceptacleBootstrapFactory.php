@@ -7,6 +7,7 @@ namespace ApplicationManagerTools\AmDriver\Core\Cli;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\CommandCallLog;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingCreateInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingGetInfoInstanceHandler;
+use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingQuotaExceededInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingSetStateViewInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStartInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStopInstanceHandler;
@@ -42,6 +43,7 @@ final class ReceptacleBootstrapFactory
                 new LoggingCreateInstanceHandler($log),
                 new LoggingStopInstanceHandler($log),
                 new LoggingStartInstanceHandler($log),
+                new LoggingQuotaExceededInstanceHandler($log),
                 new LoggingGetInfoInstanceHandler($log),
                 new LoggingSetStateViewInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
