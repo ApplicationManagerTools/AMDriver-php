@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.20 — unreleased
+
+### Added
+
+- `AmApiClientInterface::createSubscriptionUpgradeSession(instanceId, returnUrl)` —
+  `POST /api/v1/instances/{id}/billing/upgrade-session` (upgrade Embarquement → Navigation / Portail).
+- OpenAPI client : route `upgrade-session` documentée.
+
 ## 0.0.19 — unreleased
 
 ### Breaking

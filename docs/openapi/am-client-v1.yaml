@@ -163,6 +163,50 @@ paths:
         '503':
           description: Clé API Stripe non configurée côté AM
 
+  /api/v1/instances/{instanceId}/billing/upgrade-session:
+    post:
+      tags:
+        - AmOutbound
+      summary: Créer une session Customer Portal (upgrade Embarquement → Navigation)
+      operationId: amDriverCreateSubscriptionUpgradeSession
+      description: >
+        Implémenté par `AmApiClient::createSubscriptionUpgradeSession`.
+        Authentifié par `X-AM-Application-Token`. Corps JSON `{ "returnUrl": "…" }`.
+      parameters:
+        - name: instanceId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Identifiant instance AM `am_ins_<uuid-v4>`
+        - name: X-AM-Application-Token
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [returnUrl]
+              properties:
+                returnUrl:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: Session Portail créée (voir OpenAPI plateforme — data.url)
+        '400':
+          description: Validation AM
+        '403':
+          description: Token invalide ou instance hors périmètre
+        '404':
+          description: Instance inconnue
+        '503':
+          description: Clé API Stripe non configurée côté AM
+
 components:
   schemas:
     ConsumptionWebhookEvent:

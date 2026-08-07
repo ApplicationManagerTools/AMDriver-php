@@ -45,6 +45,11 @@ final class ConsumptionPublisherTest extends TestCase
             {
                 return ['statusCode' => 202, 'body' => '{"success":true}'];
             }
+
+            public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+            {
+                return ['statusCode' => 200, 'body' => ''];
+            }
         };
         $publisher = new ConsumptionPublisher($client, $manager, 'captain-learning');
 

@@ -32,4 +32,11 @@ interface AmApiClientInterface
      * @return array{statusCode: int, body: string}
      */
     public function resumeSubscription(string $instanceId): array;
+
+    /**
+     * Crée une session Customer Portal Stripe (upgrade Embarquement → Navigation) côté AM.
+     *
+     * @return array{statusCode: int, body: string}
+     */
+    public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array;
 }

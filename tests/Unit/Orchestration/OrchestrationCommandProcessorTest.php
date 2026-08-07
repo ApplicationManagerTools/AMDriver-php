@@ -123,6 +123,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }
+
+                public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+                {
+                    return ['statusCode' => 200, 'body' => ''];
+                }
             },
             new InMemoryLifecycleStore(),
             new class implements DeferredCreateInstanceDispatcherInterface {
@@ -226,6 +231,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 public function resumeSubscription(string $instanceId): array
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
+
+                public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+                {
+                    return ['statusCode' => 200, 'body' => ''];
                 }
             },
             new InMemoryLifecycleStore(),
@@ -434,6 +444,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }
+
+                public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+                {
+                    return ['statusCode' => 200, 'body' => ''];
+                }
             },
             $lifecycle,
             new class implements DeferredCreateInstanceDispatcherInterface {
@@ -562,6 +577,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }
+
+                public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+                {
+                    return ['statusCode' => 200, 'body' => ''];
+                }
             },
             new InMemoryLifecycleStore(),
             new class implements DeferredCreateInstanceDispatcherInterface {
@@ -680,6 +700,11 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 public function resumeSubscription(string $instanceId): array
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
+                }
+
+                public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+                {
+                    return ['statusCode' => 200, 'body' => ''];
                 }
             },
             $lifecycleStore ?? new InMemoryLifecycleStore(),
