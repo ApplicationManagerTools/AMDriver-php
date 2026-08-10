@@ -225,6 +225,11 @@ final class SyncStateViewOperationsTest extends TestCase
                 {
                     return ['statusCode' => 202, 'body' => '{"success":true}'];
                 }
+
+                public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+                {
+                    return ['statusCode' => 200, 'body' => ''];
+                }
             },
             new class implements OrchestrationCommandLifecycleStoreInterface {
                 public function isInProgress(string $idempotencyKey): bool
