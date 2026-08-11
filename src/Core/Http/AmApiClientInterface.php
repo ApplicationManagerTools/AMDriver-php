@@ -39,4 +39,11 @@ interface AmApiClientInterface
      * @return array{statusCode: int, body: string}
      */
     public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array;
+
+    /**
+     * Crée une Checkout Session Stripe de réabonnement (Navigation) côté AM.
+     *
+     * @return array{statusCode: int, body: string}
+     */
+    public function createSubscriptionResubscribeSession(string $instanceId, string $returnUrl): array;
 }

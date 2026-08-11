@@ -116,6 +116,31 @@ final class AmApiClient implements AmApiClientInterface
         );
     }
 
+    public function createSubscriptionResubscribeSession(string $instanceId, string $returnUrl): array
+    {
+        $trimmed = trim($instanceId);
+        if ('' === $trimmed) {
+            throw new InvalidArgumentException('instanceId cannot be empty.');
+        }
+
+        $trimmedReturn = trim($returnUrl);
+        if ('' === $trimmedReturn) {
+            throw new InvalidArgumentException('returnUrl cannot be empty.');
+        }
+
+        $url = $this->config->baseUrl().'/api/v1/instances/'.rawurlencode($trimmed).'/billing/resubscribe-session';
+
+        return $this->request(
+            'POST',
+            $url,
+            [
+                'headers' => $this->applicationHeaders(),
+                'json' => ['returnUrl' => $trimmedReturn],
+                'timeout' => $this->config->timeoutSeconds(),
+            ],
+        );
+    }
+
     /**
      * @return array<string, string>
      */

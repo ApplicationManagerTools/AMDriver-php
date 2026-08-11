@@ -36,4 +36,9 @@ final class NoopAmApiClient implements AmApiClientInterface
     {
         return ['statusCode' => 200, 'body' => '{"success":true,"data":{"url":"https://billing.stripe.com/session/test_upgrade","expiresAt":"2026-08-06T15:30:00+00:00"}}'];
     }
+
+    public function createSubscriptionResubscribeSession(string $instanceId, string $returnUrl): array
+    {
+        return ['statusCode' => 200, 'body' => '{"success":true,"data":{"url":"https://checkout.stripe.com/c/pay/test_resubscribe","expiresAt":"2026-08-11T12:00:00+00:00"}}'];
+    }
 }

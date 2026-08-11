@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.21 — unreleased
+
+### Added
+
+- `AmApiClientInterface::createSubscriptionResubscribeSession(instanceId, returnUrl)` —
+  `POST /api/v1/instances/{id}/billing/resubscribe-session` (réabonnement Navigation / Checkout).
+- OpenAPI client : route `resubscribe-session` documentée.
+
 ## 0.0.20 — unreleased
 
 ### Added
