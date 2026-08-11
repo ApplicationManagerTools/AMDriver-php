@@ -230,6 +230,11 @@ final class SyncStateViewOperationsTest extends TestCase
                 {
                     return ['statusCode' => 200, 'body' => ''];
                 }
+
+                public function createSubscriptionResubscribeSession(string $instanceId, string $returnUrl): array
+                {
+                    return ['statusCode' => 200, 'body' => ''];
+                }
             },
             new class implements OrchestrationCommandLifecycleStoreInterface {
                 public function isInProgress(string $idempotencyKey): bool

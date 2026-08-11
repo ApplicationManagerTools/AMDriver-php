@@ -10,6 +10,7 @@ use ApplicationManagerTools\AmDriver\Core\Http\AmApiClient;
 use ApplicationManagerTools\AmDriver\Core\Http\AmApiClientConfig;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\CallbackStatus;
 use ApplicationManagerTools\AmDriver\Tests\TestSupport\RecordingHttpClient;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 
 final class AmApiClientTest extends TestCase
@@ -171,10 +172,60 @@ final class AmApiClientTest extends TestCase
         $api = new AmApiClient(new RecordingHttpClient(), new AmApiClientConfig('https://am.example', 'secret-app'));
 
         // Assert
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         // Act
         $api->createSubscriptionUpgradeSession('am_ins_10000000-0000-4000-8000-000000000001', '  ');
+    }
+
+    public function testCreateSubscriptionResubscribeSessionPostsReturnUrlToBillingRoute(): void
+    {
+        // Arrange
+        $recording = new RecordingHttpClient();
+        $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
+        $instanceId = 'am_ins_10000000-0000-4000-8000-000000000001';
+        $returnUrl = 'https://tenant.example/ofq/subscription?resubscribed=1';
+
+        // Act
+        $response = $api->createSubscriptionResubscribeSession($instanceId, $returnUrl);
+
+        // Assert
+        self::assertSame(202, $response['statusCode']);
+        self::assertSame('POST', $recording->method);
+        self::assertSame(
+            'https://am.example/api/v1/instances/'.$instanceId.'/billing/resubscribe-session',
+            $recording->url,
+        );
+        self::assertSame('secret-app', $this->headerValue($recording->options, 'X-AM-Application-Token'));
+        $body = $recording->options['body'] ?? null;
+        self::assertIsString($body);
+        /** @var array<string, mixed> $json */
+        $json = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame($returnUrl, $json['returnUrl'] ?? null);
+    }
+
+    public function testCreateSubscriptionResubscribeSessionRejectsEmptyReturnUrl(): void
+    {
+        // Arrange
+        $api = new AmApiClient(new RecordingHttpClient(), new AmApiClientConfig('https://am.example', 'secret-app'));
+
+        // Assert
+        $this->expectException(InvalidArgumentException::class);
+
+        // Act
+        $api->createSubscriptionResubscribeSession('am_ins_10000000-0000-4000-8000-000000000001', '  ');
+    }
+
+    public function testCreateSubscriptionResubscribeSessionRejectsEmptyInstanceId(): void
+    {
+        // Arrange
+        $api = new AmApiClient(new RecordingHttpClient(), new AmApiClientConfig('https://am.example', 'secret-app'));
+
+        // Assert
+        $this->expectException(InvalidArgumentException::class);
+
+        // Act
+        $api->createSubscriptionResubscribeSession('  ', 'https://tenant.example/ofq/subscription');
     }
 
     /**
