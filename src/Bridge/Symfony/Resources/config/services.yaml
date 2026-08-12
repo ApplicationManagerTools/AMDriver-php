@@ -71,8 +71,10 @@ services:
         arguments:
             $idempotencyStore: '@ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore'
             $lifecycleStore: '@ApplicationManagerTools\AmDriver\Core\Idempotency\OrchestrationCommandLifecycleStoreInterface'
-            $deferredDispatcher: '@ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface'
+            $deferredCreateDispatcher: '@ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface'
+            $deferredUpgradeDispatcher: '@ApplicationManagerTools\AmDriver\Core\Contract\DeferredUpgradeInstanceDispatcherInterface'
             $createInstanceExecution: '%am_driver.config.create_instance_execution%'
+            $upgradeInstanceExecution: '%am_driver.config.upgrade_instance_execution%'
 
     # Helpers optionnels pour les handlers hôte (écriture/lecture fichiers K3540).
     ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader: ~
@@ -82,9 +84,18 @@ services:
     ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface:
         class: ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher
 
+    ApplicationManagerTools\AmDriver\Core\Contract\DeferredUpgradeInstanceDispatcherInterface:
+        class: ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredUpgradeInstanceDispatcher
+
     ApplicationManagerTools\AmDriver\Core\Orchestration\DeferredCreateInstanceWorker: ~
 
+    ApplicationManagerTools\AmDriver\Core\Orchestration\DeferredUpgradeInstanceWorker: ~
+
     ApplicationManagerTools\AmDriver\Bridge\Console\Command\ExecuteDeferredCreateInstanceCommand:
+        tags:
+            - { name: console.command }
+
+    ApplicationManagerTools\AmDriver\Bridge\Console\Command\ExecuteDeferredUpgradeInstanceCommand:
         tags:
             - { name: console.command }
 

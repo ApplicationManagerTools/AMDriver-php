@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.0.22 — unreleased
+
+### Breaking
+
+- Nouvelle opération d’orchestration `UPGRADE_INSTANCE` (async, idempotence + callback comme CREATE/STOP).
+- Interface hôte `UpgradeInstanceHandlerInterface` et `DeferredUpgradeInstanceDispatcherInterface`.
+- `OrchestrationCommandProcessor` exige `UpgradeInstanceHandlerInterface` en 7ᵉ argument constructeur
+  (après `SetStateViewInstanceHandlerInterface`) et `DeferredUpgradeInstanceDispatcherInterface` après
+  `DeferredCreateInstanceDispatcherInterface`.
+- Configuration Symfony : `upgrade_instance_execution` (`sync` ou `deferred`, défaut `deferred`).
+
+### Migration
+
+```yaml
+ApplicationManagerTools\AmDriver\Core\Contract\UpgradeInstanceHandlerInterface:
+    alias: App\Infrastructure\Am\UpgradeInstanceHandler
+
+ApplicationManagerTools\AmDriver\Core\Contract\DeferredUpgradeInstanceDispatcherInterface:
+    alias: App\Infrastructure\Am\SubprocessDeferredUpgradeInstanceDispatcher
+
+# config/packages/am_driver.yaml
+am_driver:
+    upgrade_instance_execution: deferred
+```
+
 ## 0.0.21 — unreleased
 
 ### Added

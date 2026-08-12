@@ -1,0 +1,25 @@
+{
+  "operation": "UPGRADE_INSTANCE",
+  "appId": "am_app_10000000-0000-4000-8000-000000000001",
+  "instanceId": "am_ins_10000000-0000-4000-8000-000000000001",
+  "tenantId": "am_ten_10000000-0000-4000-8000-000000000001",
+  "correlationId": "corr_upgrade_001",
+  "idempotencyKey": "billing:am_app_10000000-0000-4000-8000-000000000001:captain-learning:sub:sub_test:upgrade_instance",
+  "occurredAt": "2026-08-12T12:00:00+00:00",
+  "stateView": {
+    "state": "started",
+    "name": "Campus 26",
+    "instanceId": "am_ins_10000000-0000-4000-8000-000000000001",
+    "subscription": {
+      "id": "sub_test",
+      "name": "Navigation"
+    },
+    "resources": {
+      "proof_storage_mo": {
+        "limit": 500,
+        "actual": 12,
+        "remaining": 488
+      }
+    }
+  }
+}

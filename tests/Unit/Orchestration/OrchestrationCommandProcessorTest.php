@@ -6,11 +6,13 @@ namespace ApplicationManagerTools\AmDriver\Tests\Unit\Orchestration;
 
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\DeferredUpgradeInstanceDispatcherInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\QuotaExceededInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\UpgradeInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
 use ApplicationManagerTools\AmDriver\Core\Exception\HandlerFailedException;
@@ -82,6 +84,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopUpgradeInstanceHandler(),
             new class implements IdempotencyStoreInterface {
                 public function has(string $idempotencyKey): bool
                 {
@@ -140,6 +143,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopDeferredUpgradeInstanceDispatcher(),
         );
 
         // Act
@@ -196,6 +200,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopUpgradeInstanceHandler(),
             new class implements IdempotencyStoreInterface {
                 public function has(string $idempotencyKey): bool
                 {
@@ -254,6 +259,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopDeferredUpgradeInstanceDispatcher(),
         );
 
         // Act
@@ -413,6 +419,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopUpgradeInstanceHandler(),
             new class implements IdempotencyStoreInterface {
                 public function has(string $idempotencyKey): bool
                 {
@@ -471,6 +478,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopDeferredUpgradeInstanceDispatcher(),
         );
 
         try {
@@ -551,6 +559,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopUpgradeInstanceHandler(),
             new class implements IdempotencyStoreInterface {
                 public function has(string $idempotencyKey): bool
                 {
@@ -609,6 +618,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            new NoopDeferredUpgradeInstanceDispatcher(),
         );
 
         // Act
@@ -619,6 +629,119 @@ final class OrchestrationCommandProcessorTest extends TestCase
         self::assertTrue($handled);
         self::assertCount(1, $callbacks);
         self::assertSame('SUCCEEDED', $callbacks[0]['status'] ?? null);
+    }
+
+    public function testDeferredUpgradeInstanceDoesNotCallbackOnProcess(): void
+    {
+        $command = $this->createUpgradeCommand();
+        $callbacks = [];
+        $dispatched = false;
+        $processor = $this->processor(
+            $callbacks,
+            null,
+            null,
+            OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC,
+            new class($dispatched) implements DeferredUpgradeInstanceDispatcherInterface {
+                public bool $dispatched;
+
+                public function __construct(bool &$dispatched)
+                {
+                    $this->dispatched = &$dispatched;
+                }
+
+                public function dispatch(OrchestrationCommand $command): void
+                {
+                    $this->dispatched = true;
+                }
+            },
+        );
+
+        $result = $processor->process($command);
+
+        self::assertSame(200, $result['httpStatus']);
+        self::assertFalse($result['alreadyProcessed']);
+        self::assertTrue($dispatched);
+        self::assertCount(0, $callbacks);
+    }
+
+    public function testDeferredExecuteUpgradeInstanceCallbacksSucceeded(): void
+    {
+        $command = $this->createUpgradeCommand();
+        $callbacks = [];
+        $processor = $this->processor($callbacks);
+
+        $processor->executeUpgradeInstance($command);
+
+        self::assertCount(1, $callbacks);
+        self::assertSame('SUCCEEDED', $callbacks[0]['status'] ?? null);
+    }
+
+    public function testDeferredUpgradeValidationFailureCallbacksAndReturns400(): void
+    {
+        $command = OrchestrationCommand::fromArray([
+            'operation' => 'UPGRADE_INSTANCE',
+            'appId' => 'am_app_test',
+            'instanceId' => 'am_ins_test',
+            'idempotencyKey' => 'idem-upgrade-validation',
+            'occurredAt' => '2026-05-15T10:00:00.000Z',
+        ]);
+        $callbacks = [];
+        $processor = $this->processor($callbacks);
+
+        $result = $processor->process($command);
+
+        self::assertSame(400, $result['httpStatus']);
+        self::assertCount(1, $callbacks);
+        self::assertSame('FAILED', $callbacks[0]['status'] ?? null);
+    }
+
+    public function testSyncUpgradeInstanceDelegatesToHandlerAndReportsSucceeded(): void
+    {
+        $handled = false;
+        $callbacks = [];
+        $command = $this->createUpgradeCommand();
+        $processor = $this->processor(
+            $callbacks,
+            null,
+            null,
+            OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC,
+            null,
+            new class($handled) implements UpgradeInstanceHandlerInterface {
+                /** @var bool */
+                private $handled;
+
+                public function __construct(bool &$handled)
+                {
+                    $this->handled = &$handled;
+                }
+
+                public function handle(OrchestrationCommand $command): void
+                {
+                    $this->handled = true;
+                }
+            },
+            OrchestrationCommandProcessor::UPGRADE_INSTANCE_EXECUTION_SYNC,
+        );
+
+        $result = $processor->process($command);
+
+        self::assertSame(200, $result['httpStatus']);
+        self::assertTrue($handled);
+        self::assertCount(1, $callbacks);
+        self::assertSame('SUCCEEDED', $callbacks[0]['status'] ?? null);
+    }
+
+    private function createUpgradeCommand(): OrchestrationCommand
+    {
+        /** @var array<string, mixed> $payload */
+        $payload = json_decode(
+            (string) file_get_contents(dirname(__DIR__, 2).'/fixtures/orchestration-command-upgrade.json'),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        return OrchestrationCommand::fromArray($payload);
     }
 
     private function createCommand(): OrchestrationCommand
@@ -641,7 +764,10 @@ final class OrchestrationCommandProcessorTest extends TestCase
         array &$callbacks,
         ?OrchestrationCommandLifecycleStoreInterface $lifecycleStore = null,
         ?DeferredCreateInstanceDispatcherInterface $deferredDispatcher = null,
-        string $createInstanceExecution = OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC
+        string $createInstanceExecution = OrchestrationCommandProcessor::CREATE_INSTANCE_EXECUTION_SYNC,
+        ?DeferredUpgradeInstanceDispatcherInterface $deferredUpgradeDispatcher = null,
+        ?UpgradeInstanceHandlerInterface $upgradeHandler = null,
+        string $upgradeInstanceExecution = OrchestrationCommandProcessor::UPGRADE_INSTANCE_EXECUTION_DEFERRED
     ): OrchestrationCommandProcessor {
         return new OrchestrationCommandProcessor(
             new class implements CreateInstanceHandlerInterface {
@@ -680,6 +806,7 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            $upgradeHandler ?? new NoopUpgradeInstanceHandler(),
             new class implements IdempotencyStoreInterface {
                 public function has(string $idempotencyKey): bool
                 {
@@ -738,7 +865,9 @@ final class OrchestrationCommandProcessorTest extends TestCase
                 {
                 }
             },
+            $deferredUpgradeDispatcher ?? new NoopDeferredUpgradeInstanceDispatcher(),
             $createInstanceExecution,
+            $upgradeInstanceExecution,
         );
     }
 }

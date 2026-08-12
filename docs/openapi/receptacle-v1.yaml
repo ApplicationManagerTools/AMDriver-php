@@ -57,14 +57,16 @@ paths:
       operationId: receptacleOrchestrationCommandCreate
       description: >
         Point d’entrée unique pour `CREATE_INSTANCE`, `STOP_INSTANCE`, `START_INSTANCE`,
-        `QUOTA_EXCEEDED`, `GET_INFO_INSTANCE` et `SET_STATEVIEW_INSTANCE`.
-        Idempotence sur `idempotencyKey` (CREATE/START/STOP/QUOTA_EXCEEDED) :
+        `QUOTA_EXCEEDED`, `UPGRADE_INSTANCE`, `GET_INFO_INSTANCE` et `SET_STATEVIEW_INSTANCE`.
+        Idempotence sur `idempotencyKey` (CREATE/START/STOP/QUOTA_EXCEEDED/UPGRADE) :
         rejeu sans effet secondaire → `200` avec `alreadyProcessed: true`.
         `GET_INFO_INSTANCE` / `SET_STATEVIEW_INSTANCE` sont synchrones (pas de PENDING ni callback) :
         réponses `{ resources }` / `{ updated: true }`.
         En cas d'échec handler async, le bundle notifie AM via callback (voir `am-client-v1.yaml`).
         Avec `create_instance_execution: deferred`, `CREATE_INSTANCE` répond `200` avant l'exécution ;
         le callback part après traitement async (`executeCreateInstance`).
+        Avec `upgrade_instance_execution: deferred` (défaut), `UPGRADE_INSTANCE` répond `200` avant l'exécution ;
+        le callback part après traitement async (`executeUpgradeInstance`).
       security:
         - orchestrationCommandToken: []
       parameters:
@@ -97,6 +99,22 @@ paths:
                   correlationId: corr_stop_001
                   idempotencyKey: am_ins_10000000-0000-4000-8000-000000000001:stop_instance:v1
                   occurredAt: '2026-05-14T16:00:00+00:00'
+              upgradeInstance:
+                summary: UPGRADE_INSTANCE
+                value:
+                  operation: UPGRADE_INSTANCE
+                  appId: am_app_10000000-0000-4000-8000-000000000001
+                  instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                  tenantId: am_ten_10000000-0000-4000-8000-000000000001
+                  correlationId: corr_upgrade_001
+                  idempotencyKey: billing:am_app_10000000-0000-4000-8000-000000000001:captain-learning:sub:sub_test:upgrade_instance
+                  occurredAt: '2026-08-12T12:00:00+00:00'
+                  stateView:
+                    state: started
+                    instanceId: am_ins_10000000-0000-4000-8000-000000000001
+                    subscription:
+                      id: sub_test
+                      name: Navigation
               getInfoInstance:
                 summary: GET_INFO_INSTANCE (sync)
                 value:
@@ -331,6 +349,7 @@ components:
             - STOP_INSTANCE
             - START_INSTANCE
             - QUOTA_EXCEEDED
+            - UPGRADE_INSTANCE
             - DESTROY_INSTANCE
             - GET_INFO_INSTANCE
             - SET_STATEVIEW_INSTANCE
@@ -354,7 +373,7 @@ components:
         idempotencyKey:
           type: string
           description: >
-            Obligatoire pour CREATE/START/STOP. Optionnel / omis pour GET_INFO et SET_STATEVIEW.
+            Obligatoire pour CREATE/START/STOP/QUOTA_EXCEEDED/UPGRADE. Optionnel / omis pour GET_INFO et SET_STATEVIEW.
         occurredAt:
           type: string
           format: date-time

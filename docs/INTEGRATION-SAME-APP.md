@@ -43,6 +43,7 @@ Implémenter et enregistrer (autoconfigure Symfony) :
 - `QuotaExceededInstanceHandlerInterface`
 - `GetInfoInstanceHandlerInterface`
 - `SetStateViewInstanceHandlerInterface`
+- `UpgradeInstanceHandlerInterface`
 
 Le `OrchestrationCommandProcessor` du bundle envoie les callbacks AM après succès / échec.
 
