@@ -12,6 +12,7 @@ use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingQuotaExceededInsta
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingSetStateViewInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStartInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingStopInstanceHandler;
+use ApplicationManagerTools\AmDriver\Core\Cli\InMemory\LoggingUpgradeInstanceHandler;
 use ApplicationManagerTools\AmDriver\Core\Cli\ReceptacleHttpKernel;
 use ApplicationManagerTools\AmDriver\Core\Http\NoopAmApiClient;
 use ApplicationManagerTools\AmDriver\Core\Idempotency\FileIdempotencyStore;
@@ -21,6 +22,7 @@ use ApplicationManagerTools\AmDriver\Core\OperationalState\FileOperationalStateS
 use ApplicationManagerTools\AmDriver\Core\OperationalState\OperationalStateProcessor;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProcessor;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredCreateInstanceDispatcher;
+use ApplicationManagerTools\AmDriver\Core\Orchestration\UnconfiguredDeferredUpgradeInstanceDispatcher;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\FileResourceSnapshotStore;
 use ApplicationManagerTools\AmDriver\Core\Snapshot\ResourceSnapshotManager;
 use PHPUnit\Framework\TestCase;
@@ -80,10 +82,12 @@ final class ReceptacleHttpKernelTest extends TestCase
                 new LoggingQuotaExceededInstanceHandler($log),
                 new LoggingGetInfoInstanceHandler($log),
                 new LoggingSetStateViewInstanceHandler($log),
+                new LoggingUpgradeInstanceHandler($log),
                 new FileIdempotencyStore($dataDir.'/idempotency'),
                 new NoopAmApiClient(),
                 new FileOrchestrationCommandLifecycleStore($dataDir.'/idempotency-in-progress'),
                 new UnconfiguredDeferredCreateInstanceDispatcher(),
+                new UnconfiguredDeferredUpgradeInstanceDispatcher(),
             ),
             new OperationalStateProcessor(
                 new FileOperationalStateStore($dataDir.'/operational-state'),

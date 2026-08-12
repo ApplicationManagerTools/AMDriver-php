@@ -6,11 +6,13 @@ namespace ApplicationManagerTools\AmDriver\Core\Orchestration;
 
 use ApplicationManagerTools\AmDriver\Core\Contract\CreateInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\DeferredCreateInstanceDispatcherInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\DeferredUpgradeInstanceDispatcherInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\GetInfoInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\QuotaExceededInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\SetStateViewInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StartInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Contract\StopInstanceHandlerInterface;
+use ApplicationManagerTools\AmDriver\Core\Contract\UpgradeInstanceHandlerInterface;
 use ApplicationManagerTools\AmDriver\Core\Dto\CreateInstanceHandlerResult;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCallbackRequest;
 use ApplicationManagerTools\AmDriver\Core\Dto\OrchestrationCommand;
@@ -25,6 +27,8 @@ final class OrchestrationCommandProcessor
 {
     public const CREATE_INSTANCE_EXECUTION_SYNC = 'sync';
     public const CREATE_INSTANCE_EXECUTION_DEFERRED = 'deferred';
+    public const UPGRADE_INSTANCE_EXECUTION_SYNC = 'sync';
+    public const UPGRADE_INSTANCE_EXECUTION_DEFERRED = 'deferred';
 
     /** @var CreateInstanceHandlerInterface */
     private $createHandler;
@@ -44,6 +48,9 @@ final class OrchestrationCommandProcessor
     /** @var SetStateViewInstanceHandlerInterface */
     private $setStateViewHandler;
 
+    /** @var UpgradeInstanceHandlerInterface */
+    private $upgradeHandler;
+
     /** @var IdempotencyStoreInterface */
     private $idempotencyStore;
 
@@ -54,10 +61,16 @@ final class OrchestrationCommandProcessor
     private $amApiClient;
 
     /** @var DeferredCreateInstanceDispatcherInterface */
-    private $deferredDispatcher;
+    private $deferredCreateDispatcher;
+
+    /** @var DeferredUpgradeInstanceDispatcherInterface */
+    private $deferredUpgradeDispatcher;
 
     /** @var string */
     private $createInstanceExecution;
+
+    /** @var string */
+    private $upgradeInstanceExecution;
 
     public function __construct(
         CreateInstanceHandlerInterface $createHandler,
@@ -66,11 +79,14 @@ final class OrchestrationCommandProcessor
         QuotaExceededInstanceHandlerInterface $quotaExceededHandler,
         GetInfoInstanceHandlerInterface $getInfoHandler,
         SetStateViewInstanceHandlerInterface $setStateViewHandler,
+        UpgradeInstanceHandlerInterface $upgradeHandler,
         IdempotencyStoreInterface $idempotencyStore,
         AmApiClientInterface $amApiClient,
         OrchestrationCommandLifecycleStoreInterface $lifecycleStore,
-        DeferredCreateInstanceDispatcherInterface $deferredDispatcher,
-        string $createInstanceExecution = self::CREATE_INSTANCE_EXECUTION_SYNC
+        DeferredCreateInstanceDispatcherInterface $deferredCreateDispatcher,
+        DeferredUpgradeInstanceDispatcherInterface $deferredUpgradeDispatcher,
+        string $createInstanceExecution = self::CREATE_INSTANCE_EXECUTION_SYNC,
+        string $upgradeInstanceExecution = self::UPGRADE_INSTANCE_EXECUTION_DEFERRED
     ) {
         $this->createHandler = $createHandler;
         $this->stopHandler = $stopHandler;
@@ -78,11 +94,14 @@ final class OrchestrationCommandProcessor
         $this->quotaExceededHandler = $quotaExceededHandler;
         $this->getInfoHandler = $getInfoHandler;
         $this->setStateViewHandler = $setStateViewHandler;
+        $this->upgradeHandler = $upgradeHandler;
         $this->idempotencyStore = $idempotencyStore;
         $this->amApiClient = $amApiClient;
         $this->lifecycleStore = $lifecycleStore;
-        $this->deferredDispatcher = $deferredDispatcher;
+        $this->deferredCreateDispatcher = $deferredCreateDispatcher;
+        $this->deferredUpgradeDispatcher = $deferredUpgradeDispatcher;
         $this->createInstanceExecution = $createInstanceExecution;
+        $this->upgradeInstanceExecution = $upgradeInstanceExecution;
     }
 
     /**
@@ -105,6 +124,10 @@ final class OrchestrationCommandProcessor
             return $this->acceptCreateInstanceDeferred($command);
         }
 
+        if ($command->operation()->isUpgrade() && self::UPGRADE_INSTANCE_EXECUTION_DEFERRED === $this->upgradeInstanceExecution) {
+            return $this->acceptUpgradeInstanceDeferred($command);
+        }
+
         $createResult = null;
         try {
             if ($command->operation()->isCreate()) {
@@ -115,6 +138,8 @@ final class OrchestrationCommandProcessor
                 $this->startHandler->handle($command);
             } elseif ($command->operation()->isQuotaExceeded()) {
                 $this->quotaExceededHandler->handle($command);
+            } elseif ($command->operation()->isUpgrade()) {
+                $this->upgradeHandler->handle($command);
             } elseif ($command->operation()->isDestroy()) {
                 throw new ValidationException('DESTROY_INSTANCE is not supported by am-driver v1; see docs/ECARTS-AM.md');
             } else {
@@ -160,6 +185,26 @@ final class OrchestrationCommandProcessor
                 null,
                 $createResult->toArray(),
             );
+        } catch (HandlerFailedException $e) {
+            $this->reportCallback($command, $e->callbackStatus(), $e->getMessage());
+            throw $e;
+        } catch (ValidationException $e) {
+            $this->reportCallback($command, CallbackStatus::failed(), $e->getMessage());
+            throw $e;
+        } catch (Throwable $e) {
+            $this->reportCallback($command, CallbackStatus::retryableFailure(), $e->getMessage());
+            throw $e;
+        } finally {
+            $this->lifecycleStore->clearInProgress($command->idempotencyKey());
+        }
+    }
+
+    public function executeUpgradeInstance(OrchestrationCommand $command): void
+    {
+        try {
+            $this->upgradeHandler->handle($command);
+            $this->idempotencyStore->remember($command->idempotencyKey());
+            $this->reportCallback($command, CallbackStatus::succeeded(), null);
         } catch (HandlerFailedException $e) {
             $this->reportCallback($command, $e->callbackStatus(), $e->getMessage());
             throw $e;
@@ -238,7 +283,32 @@ final class OrchestrationCommandProcessor
         }
 
         $this->lifecycleStore->markInProgress($command->idempotencyKey());
-        $this->deferredDispatcher->dispatch($command);
+        $this->deferredCreateDispatcher->dispatch($command);
+
+        return ['httpStatus' => 200, 'alreadyProcessed' => false];
+    }
+
+    /**
+     * @return array{httpStatus: int, alreadyProcessed: bool}
+     */
+    private function acceptUpgradeInstanceDeferred(OrchestrationCommand $command): array
+    {
+        if ([] === $command->stateView()) {
+            $this->reportCallback(
+                $command,
+                CallbackStatus::failed(),
+                'UPGRADE_INSTANCE requires a non-empty stateView',
+            );
+
+            return ['httpStatus' => 400, 'alreadyProcessed' => false];
+        }
+
+        if ($this->lifecycleStore->isInProgress($command->idempotencyKey())) {
+            return ['httpStatus' => 200, 'alreadyProcessed' => true];
+        }
+
+        $this->lifecycleStore->markInProgress($command->idempotencyKey());
+        $this->deferredUpgradeDispatcher->dispatch($command);
 
         return ['httpStatus' => 200, 'alreadyProcessed' => false];
     }

@@ -72,6 +72,17 @@ final class OrchestrationCommandTest extends TestCase
         self::assertNull($command->credentialsLogin());
     }
 
+    public function testFromArrayUpgradeInstanceWithStateView(): void
+    {
+        $stateView = ['state' => 'started', 'subscription' => ['name' => 'Navigation']];
+        $data = $this->basePayload(Operation::UPGRADE_INSTANCE) + ['stateView' => $stateView];
+
+        $command = OrchestrationCommand::fromArray($data);
+
+        self::assertTrue($command->operation()->isUpgrade());
+        self::assertSame($stateView, $command->stateView());
+    }
+
     public function testFromArrayStartInstanceRejectsName(): void
     {
         // Arrange

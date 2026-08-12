@@ -21,6 +21,8 @@ use ApplicationManagerTools\AmDriver\Core\Orchestration\OrchestrationCommandProc
 use ApplicationManagerTools\AmDriver\Core\StateView\FileActualResourcesConsumptionReader;
 use ApplicationManagerTools\AmDriver\Core\StateView\FileStateViewWriter;
 use ApplicationManagerTools\AmDriver\Core\Tenant\FileTenantWorkspace;
+use ApplicationManagerTools\AmDriver\Tests\Unit\Orchestration\NoopDeferredUpgradeInstanceDispatcher;
+use ApplicationManagerTools\AmDriver\Tests\Unit\Orchestration\NoopUpgradeInstanceHandler;
 use FilesystemIterator;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
@@ -184,6 +186,7 @@ final class SyncStateViewOperationsTest extends TestCase
             },
             $getInfo,
             $setStateView,
+            new NoopUpgradeInstanceHandler(),
             new class implements IdempotencyStoreInterface {
                 public function has(string $idempotencyKey): bool
                 {
@@ -255,6 +258,7 @@ final class SyncStateViewOperationsTest extends TestCase
                 {
                 }
             },
+            new NoopDeferredUpgradeInstanceDispatcher(),
         );
     }
 

@@ -47,6 +47,11 @@ final class Configuration implements ConfigurationInterface
                     ->defaultValue('sync')
                     ->info('sync: handler runs in HTTP request; deferred: HTTP 200 immediately, host dispatches async execution.')
                 ->end()
+                ->enumNode('upgrade_instance_execution')
+                    ->values(['sync', 'deferred'])
+                    ->defaultValue('deferred')
+                    ->info('sync: handler runs in HTTP request; deferred: HTTP 200 immediately, host dispatches async execution.')
+                ->end()
             ->end();
 
         return $treeBuilder;

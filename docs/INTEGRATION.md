@@ -36,6 +36,7 @@ Exemple aligné sur `ApplicationManager/.env.local.dist` :
 | `expected_tenant_id` | `AM_DRIVER_EXPECTED_TENANT_ID` | (optionnel) garde-fou mono-tenant |
 | `expected_instance_id` | `AM_DRIVER_EXPECTED_INSTANCE_ID` | (optionnel) |
 | `create_instance_execution` | — | `sync` (défaut) ou `deferred` pour CREATE_INSTANCE |
+| `upgrade_instance_execution` | — | `sync` ou `deferred` (défaut) pour UPGRADE_INSTANCE |
 | `data_dir` | — | Répertoire snapshots / idempotence / état opérationnel |
 
 ## Routes exposées (défaut)
@@ -72,7 +73,7 @@ Sous `{data_dir}/` :
 - `snapshots/{tenantId}.json` — `managed-instance-resource-snapshot.v1`
 - `operational-state/{tenantId}-operational-state.json` — dernier `instance-operational-state.v1`
 - `idempotency/` — clés commandes déjà traitées
-- `idempotency-in-progress/` — commandes CREATE_INSTANCE en cours (mode `deferred`)
+- `idempotency-in-progress/` — commandes CREATE_INSTANCE / UPGRADE_INSTANCE en cours (mode `deferred`)
 - `operational-state-receipts/` — dedup `correlationId` + `computedAt`
 
 ## Paramètres Symfony (`am_driver.config.*`)
