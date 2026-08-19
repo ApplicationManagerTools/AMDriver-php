@@ -91,8 +91,11 @@ final class AmApiClient implements AmApiClientInterface
         );
     }
 
-    public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
-    {
+    public function createSubscriptionUpgradeSession(
+        string $instanceId,
+        string $returnUrl,
+        string $targetFormulaId,
+    ): array {
         $trimmed = trim($instanceId);
         if ('' === $trimmed) {
             throw new InvalidArgumentException('instanceId cannot be empty.');
@@ -103,6 +106,11 @@ final class AmApiClient implements AmApiClientInterface
             throw new InvalidArgumentException('returnUrl cannot be empty.');
         }
 
+        $trimmedFormula = trim($targetFormulaId);
+        if ('' === $trimmedFormula) {
+            throw new InvalidArgumentException('targetFormulaId cannot be empty.');
+        }
+
         $url = $this->config->baseUrl().'/api/v1/instances/'.rawurlencode($trimmed).'/billing/upgrade-session';
 
         return $this->request(
@@ -110,7 +118,10 @@ final class AmApiClient implements AmApiClientInterface
             $url,
             [
                 'headers' => $this->applicationHeaders(),
-                'json' => ['returnUrl' => $trimmedReturn],
+                'json' => [
+                    'returnUrl' => $trimmedReturn,
+                    'targetFormulaId' => $trimmedFormula,
+                ],
                 'timeout' => $this->config->timeoutSeconds(),
             ],
         );

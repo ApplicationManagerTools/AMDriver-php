@@ -167,11 +167,12 @@ paths:
     post:
       tags:
         - AmOutbound
-      summary: Créer une session Customer Portal (upgrade Embarquement → Navigation)
+      summary: Créer une session Customer Portal (upgrade vers formule cible)
       operationId: amDriverCreateSubscriptionUpgradeSession
       description: >
         Implémenté par `AmApiClient::createSubscriptionUpgradeSession`.
-        Authentifié par `X-AM-Application-Token`. Corps JSON `{ "returnUrl": "…" }`.
+        Authentifié par `X-AM-Application-Token`. Corps JSON
+        `{ "returnUrl": "…", "targetFormulaId": "am_sfm_…" }`.
       parameters:
         - name: instanceId
           in: path
@@ -190,11 +191,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [returnUrl]
+              required: [returnUrl, targetFormulaId]
               properties:
                 returnUrl:
                   type: string
                   format: uri
+                targetFormulaId:
+                  type: string
+                  description: Identifiant formule AM cible (`am_sfm_<uuid-v4>`)
       responses:
         '200':
           description: Session Portail créée (voir OpenAPI plateforme — data.url)

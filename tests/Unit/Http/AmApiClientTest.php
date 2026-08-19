@@ -147,9 +147,10 @@ final class AmApiClientTest extends TestCase
         $api = new AmApiClient($recording, new AmApiClientConfig('https://am.example', 'secret-app'));
         $instanceId = 'am_ins_10000000-0000-4000-8000-000000000001';
         $returnUrl = 'https://tenant.example/ofq/subscription?upgraded=1';
+        $targetFormulaId = 'am_sfm_10000000-0000-4000-8000-000000000099';
 
         // Act
-        $response = $api->createSubscriptionUpgradeSession($instanceId, $returnUrl);
+        $response = $api->createSubscriptionUpgradeSession($instanceId, $returnUrl, $targetFormulaId);
 
         // Assert
         self::assertSame(202, $response['statusCode']);
@@ -164,6 +165,7 @@ final class AmApiClientTest extends TestCase
         /** @var array<string, mixed> $json */
         $json = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
         self::assertSame($returnUrl, $json['returnUrl'] ?? null);
+        self::assertSame($targetFormulaId, $json['targetFormulaId'] ?? null);
     }
 
     public function testCreateSubscriptionUpgradeSessionRejectsEmptyReturnUrl(): void
@@ -175,7 +177,27 @@ final class AmApiClientTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         // Act
-        $api->createSubscriptionUpgradeSession('am_ins_10000000-0000-4000-8000-000000000001', '  ');
+        $api->createSubscriptionUpgradeSession(
+            'am_ins_10000000-0000-4000-8000-000000000001',
+            '  ',
+            'am_sfm_10000000-0000-4000-8000-000000000099',
+        );
+    }
+
+    public function testCreateSubscriptionUpgradeSessionRejectsEmptyTargetFormulaId(): void
+    {
+        // Arrange
+        $api = new AmApiClient(new RecordingHttpClient(), new AmApiClientConfig('https://am.example', 'secret-app'));
+
+        // Assert
+        $this->expectException(InvalidArgumentException::class);
+
+        // Act
+        $api->createSubscriptionUpgradeSession(
+            'am_ins_10000000-0000-4000-8000-000000000001',
+            'https://tenant.example/ofq/subscription',
+            '  ',
+        );
     }
 
     public function testCreateSubscriptionResubscribeSessionPostsReturnUrlToBillingRoute(): void
