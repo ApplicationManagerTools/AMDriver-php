@@ -35,7 +35,7 @@ final class NoopAmApiClient implements AmApiClientInterface
     public function createSubscriptionUpgradeSession(
         string $instanceId,
         string $returnUrl,
-        string $targetFormulaId,
+        string $targetFormulaId
     ): array {
         return ['statusCode' => 200, 'body' => '{"success":true,"data":{"url":"https://billing.stripe.com/session/test_upgrade","expiresAt":"2026-08-06T15:30:00+00:00"}}'];
     }

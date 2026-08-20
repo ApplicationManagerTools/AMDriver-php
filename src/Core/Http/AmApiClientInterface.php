@@ -41,7 +41,7 @@ interface AmApiClientInterface
     public function createSubscriptionUpgradeSession(
         string $instanceId,
         string $returnUrl,
-        string $targetFormulaId,
+        string $targetFormulaId
     ): array;
 
     /**

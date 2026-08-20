@@ -94,7 +94,7 @@ final class AmApiClient implements AmApiClientInterface
     public function createSubscriptionUpgradeSession(
         string $instanceId,
         string $returnUrl,
-        string $targetFormulaId,
+        string $targetFormulaId
     ): array {
         $trimmed = trim($instanceId);
         if ('' === $trimmed) {
