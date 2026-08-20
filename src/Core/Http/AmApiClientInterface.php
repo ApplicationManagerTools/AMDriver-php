@@ -34,11 +34,15 @@ interface AmApiClientInterface
     public function resumeSubscription(string $instanceId): array;
 
     /**
-     * Crée une session Customer Portal Stripe (upgrade Embarquement → Navigation) côté AM.
+     * Crée une session Customer Portal Stripe (upgrade vers une formule cible) côté AM.
      *
      * @return array{statusCode: int, body: string}
      */
-    public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array;
+    public function createSubscriptionUpgradeSession(
+        string $instanceId,
+        string $returnUrl,
+        string $targetFormulaId
+    ): array;
 
     /**
      * Crée une Checkout Session Stripe de réabonnement (Navigation) côté AM.

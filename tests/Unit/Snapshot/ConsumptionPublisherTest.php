@@ -46,7 +46,7 @@ final class ConsumptionPublisherTest extends TestCase
                 return ['statusCode' => 202, 'body' => '{"success":true}'];
             }
 
-            public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl): array
+            public function createSubscriptionUpgradeSession(string $instanceId, string $returnUrl, string $targetFormulaId): array
             {
                 return ['statusCode' => 200, 'body' => ''];
             }

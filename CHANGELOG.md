@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.23 — unreleased
+
+### Breaking
+
+- `AmApiClientInterface::createSubscriptionUpgradeSession(instanceId, returnUrl, targetFormulaId)` —
+  corps JSON `{ "returnUrl": "…", "targetFormulaId": "am_sfm_…" }` vers
+  `POST /api/v1/instances/{id}/billing/upgrade-session` (formule cible fixée côté app gérée).
+
 ## 0.0.22 — unreleased
 
 ### Breaking
