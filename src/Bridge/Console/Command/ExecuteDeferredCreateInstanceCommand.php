@@ -9,7 +9,6 @@ use ApplicationManagerTools\AmDriver\Core\Exception\HandlerFailedException;
 use ApplicationManagerTools\AmDriver\Core\Exception\ValidationException;
 use ApplicationManagerTools\AmDriver\Core\Orchestration\DeferredCreateInstanceWorker;
 use ApplicationManagerTools\AmDriver\Core\Validation\JsonPayloadValidator;
-use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -17,10 +16,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Throwable;
 
-#[AsCommand(
-    name: 'am-driver:execute-deferred-create-instance',
-    description: 'Execute a deferred CREATE_INSTANCE orchestration command from a JSON file',
-)]
 final class ExecuteDeferredCreateInstanceCommand extends Command
 {
     /** @var DeferredCreateInstanceWorker */
@@ -34,7 +29,10 @@ final class ExecuteDeferredCreateInstanceCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption('command-file', null, InputOption::VALUE_REQUIRED, 'Path to JSON orchestration command payload');
+        $this
+            ->setName('am-driver:execute-deferred-create-instance')
+            ->setDescription('Execute a deferred CREATE_INSTANCE orchestration command from a JSON file')
+            ->addOption('command-file', null, InputOption::VALUE_REQUIRED, 'Path to JSON orchestration command payload');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
