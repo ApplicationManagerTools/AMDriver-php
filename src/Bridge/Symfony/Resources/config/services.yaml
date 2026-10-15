@@ -93,7 +93,11 @@ services:
 
     ApplicationManagerTools\AmDriver\Bridge\Console\Command\ExecuteDeferredCreateInstanceCommand:
         tags:
-            - { name: console.command }
+            - {
+                name: console.command,
+                command: am-driver:execute-deferred-create-instance,
+                description: 'Execute a deferred CREATE_INSTANCE orchestration command from a JSON file',
+            }
 
     ApplicationManagerTools\AmDriver\Bridge\Console\Command\ExecuteDeferredUpgradeInstanceCommand:
         tags:

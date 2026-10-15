@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.0.24 — unreleased
+
+### Fixed
+
+- Symfony 8.1+ : `ExecuteDeferredCreateInstanceCommand` déclare le nom via `#[AsCommand]` et le tag
+  `console.command` (`command: am-driver:execute-deferred-create-instance`) pour le chargement lazy
+  (ex. `cache:clear` en prod / build Docker Application Manager). Comportement et nom de commande inchangés.
+
 ## 0.0.23 — unreleased
 
 ### Breaking
