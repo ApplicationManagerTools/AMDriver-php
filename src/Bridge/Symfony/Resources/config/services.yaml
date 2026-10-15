@@ -101,7 +101,11 @@ services:
 
     ApplicationManagerTools\AmDriver\Bridge\Console\Command\ExecuteDeferredUpgradeInstanceCommand:
         tags:
-            - { name: console.command }
+            - {
+                name: console.command,
+                command: am-driver:execute-deferred-upgrade-instance,
+                description: 'Execute a deferred UPGRADE_INSTANCE orchestration command from a JSON file',
+            }
 
     ApplicationManagerTools\AmDriver\Core\Snapshot\ConsumptionPublisher:
         factory: ['ApplicationManagerTools\AmDriver\Bridge\Symfony\Factory\ConsumptionPublisherFactory', 'create']

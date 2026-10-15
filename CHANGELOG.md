@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.0.24 — unreleased
+## 0.0.25 — unreleased
+
+### Fixed
+
+- Symfony 8.1+ : même correctif que 0.0.24 pour `ExecuteDeferredUpgradeInstanceCommand`
+  (`command: am-driver:execute-deferred-upgrade-instance` dans `services.yaml`).
+
+## 0.0.24
 
 ### Fixed
 
