@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.0.24 — unreleased
+
+### Fixed
+
+- Symfony 8.1+ : nom de commande déclaré à la compilation via le tag `console.command`
+  (`command: am-driver:execute-deferred-create-instance` dans `services.yaml`), sans attribut PHP 8
+  (compat analyse PHP 7.4 / PHPStan CI). `configure()` conserve `setName` / `setDescription` pour les
+  autres versions Symfony. Comportement et nom de commande inchangés.
+
 ## 0.0.23 — unreleased
 
 ### Breaking
